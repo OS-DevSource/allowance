@@ -3,7 +3,7 @@
 ## 0.1.1 — 2026-09-08
 
 - Synchronize native window resizing with the content animation in both directions.
-- Increase title-bar background opacity to reduce distractions from windows behind it.
+- Make the title-bar background fully opaque to reduce distractions from windows behind it.
 
 ## 0.1.0 — 2026-09-08
 

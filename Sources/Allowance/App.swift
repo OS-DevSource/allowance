@@ -27,7 +27,7 @@ import AppKit
         window.title = "Allowance"
         window.titlebarAppearsTransparent = true
         window.isOpaque = false
-        window.backgroundColor = NSColor(calibratedWhite: 0.065, alpha: 0.97)
+        window.backgroundColor = NSColor(calibratedWhite: 0.065, alpha: 1)
         window.appearance = NSAppearance(named: .darkAqua)
         window.isReleasedWhenClosed = false
         window.install(model: model)
