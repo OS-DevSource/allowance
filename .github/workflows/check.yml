@@ -1,0 +1,26 @@
+name: Build and check
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  macos:
+    runs-on: macos-15
+    env:
+      DEVELOPER_DIR: /Applications/Xcode_26.3.app/Contents/Developer
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Toolchain
+        run: |
+          swift --version
+          xcrun --sdk macosx --show-sdk-version
+      - name: Deterministic checks (no account access)
+        run: ./check.sh
+      - name: XCTest
+        run: swift test
+      - name: Build app
+        run: ./build-app.sh
+      - name: Verify signature
+        run: codesign --verify --strict Allowance.app

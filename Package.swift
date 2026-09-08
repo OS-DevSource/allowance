@@ -1,0 +1,3 @@
+// swift-tools-version: 6.2
+import PackageDescription
+let package = Package(name: "Allowance", platforms: [.macOS(.v13)], products: [.executable(name: "Allowance", targets: ["Allowance"])], targets: [.executableTarget(name: "Allowance"), .testTarget(name: "AllowanceTests", dependencies: ["Allowance"])], swiftLanguageModes: [.v5])
