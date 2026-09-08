@@ -1,8 +1,7 @@
 import AppKit
 import SwiftUI
-import QuartzCore
 
-/// Own fitting-size changes explicitly so AppKit cannot snap the window closed.
+/// Follow SwiftUI presentation heights so content and window share one animation.
 final class CompanionWindow: NSWindow {
     private var hosting: NSHostingController<AnyView>?
     private var targetHeight: CGFloat = 0
@@ -17,21 +16,32 @@ final class CompanionWindow: NSWindow {
         contentViewController = host
     }
     private func resize(to height: CGFloat) {
-        guard height.isFinite, height > 0, abs(height - targetHeight) > 0.5 else { return }
-        targetHeight = height
+        guard height.isFinite, height > 0, ceil(height) != targetHeight else { return }
+        targetHeight = ceil(height)
         let content = NSRect(x: 0, y: 0, width: 360, height: ceil(height))
         let newHeight = frameRect(forContentRect: content).height
         var destination = frame
         destination.origin.y += destination.height - newHeight
         destination.size = NSSize(width: 360, height: newHeight)
-        guard isVisible, !NSWorkspace.shared.accessibilityDisplayShouldReduceMotion else {
-            setFrame(destination, display: true)
-            return
+        setFrame(destination, display: true)
+    }
+}
+
+/// Reports interpolated presentation sizes, rather than only the final layout size.
+struct AnimatedPanelHeight: AnimatableModifier {
+    var height: CGFloat
+    var onHeightChange: ((CGFloat) -> Void)?
+
+    var animatableData: CGFloat {
+        get { height }
+        set {
+            height = newValue
+            onHeightChange?(newValue)
         }
-        NSAnimationContext.runAnimationGroup { context in
-            context.duration = 0.32
-            context.timingFunction = CAMediaTimingFunction(name: .easeInEaseOut)
-            animator().setFrame(destination, display: true)
-        }
+    }
+
+    func body(content: Content) -> some View {
+        content.onAppear { onHeightChange?(height) }
+            .onChange(of: height) { onHeightChange?($0) }
     }
 }

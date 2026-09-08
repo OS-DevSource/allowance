@@ -27,7 +27,7 @@ import AppKit
         window.title = "Allowance"
         window.titlebarAppearsTransparent = true
         window.isOpaque = false
-        window.backgroundColor = NSColor(calibratedWhite: 0.065, alpha: 0.88)
+        window.backgroundColor = NSColor(calibratedWhite: 0.065, alpha: 0.97)
         window.appearance = NSAppearance(named: .darkAqua)
         window.isReleasedWhenClosed = false
         window.install(model: model)
@@ -174,8 +174,7 @@ struct Panel: View {
         .background {
             GeometryReader { proxy in
                 Color.clear
-                    .onAppear { onHeightChange?(proxy.size.height) }
-                    .onChange(of: proxy.size.height) { height in onHeightChange?(height) }
+                    .modifier(AnimatedPanelHeight(height: proxy.size.height, onHeightChange: onHeightChange))
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.32), value: showAllDetails)
