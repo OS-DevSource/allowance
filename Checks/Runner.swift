@@ -19,6 +19,14 @@ private final class SequenceReader: @unchecked Sendable {
 }
 @main struct Checks {
     @MainActor static func main() async throws {
+        let area = NSRect(x: 0, y: 25, width: 1440, height: 875)
+        let size = NSSize(width: 360, height: 410)
+        let point = NSPoint(x: 8, y: 892)
+        check(WindowPosition.reachableTopLeft(point, size: size, area: area) == point, "Preserve reachable window position")
+        check(WindowPosition.reachableTopLeft(NSPoint(x: 2500, y: -500), size: size, area: area) == NSPoint(x: 1080, y: 47), "Recover position from disconnected display")
+        let leftDisplay = NSRect(x: -1280, y: 0, width: 1280, height: 720)
+        check(WindowPosition.reachableTopLeft(NSPoint(x: -1200, y: 700), size: size, area: leftDisplay) == NSPoint(x: -1200, y: 700), "Preserve negative display coordinates")
+        check(WindowPosition.reachableTopLeft(.zero, size: NSSize(width: 1500, height: 900), area: leftDisplay) == NSPoint(x: -1280, y: 22), "Keep oversized window title bar reachable")
         let fm = FileManager.default
         let scratch = fm.temporaryDirectory.appendingPathComponent("allowance-checks-" + UUID().uuidString)
         try fm.createDirectory(at: scratch, withIntermediateDirectories: true)

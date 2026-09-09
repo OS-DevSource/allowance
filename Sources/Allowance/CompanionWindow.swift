@@ -2,7 +2,31 @@ import AppKit
 import SwiftUI
 
 /// Follow SwiftUI presentation heights so content and window share one animation.
-final class CompanionWindow: NSWindow {
+final class CompanionWindow: NSWindow, NSWindowDelegate {
+    private var trackingPosition = false
+
+    func restorePosition() {
+        if UserDefaults.standard.object(forKey: "rememberWindowPosition") as? Bool ?? true,
+           let saved = UserDefaults.standard.array(forKey: "companionTopLeft") as? [Double],
+           saved.count == 2, saved.allSatisfy({ $0.isFinite }) {
+            let point = NSPoint(x: saved[0], y: saved[1])
+            let areas = NSScreen.screens.map(\.visibleFrame)
+            if let area = areas.first(where: { $0.contains(NSPoint(x: point.x, y: point.y - 1)) }) ?? areas.first {
+                setFrameTopLeftPoint(WindowPosition.reachableTopLeft(point, size: frame.size, area: area))
+            }
+        }
+        delegate = self
+        trackingPosition = true
+    }
+
+    func savePosition() {
+        guard trackingPosition,
+              UserDefaults.standard.object(forKey: "rememberWindowPosition") as? Bool ?? true else { return }
+        UserDefaults.standard.set([frame.minX, frame.maxY], forKey: "companionTopLeft")
+    }
+
+    func windowDidMove(_ notification: Notification) { savePosition() }
+
     private var hosting: NSHostingController<AnyView>?
     private var targetHeight: CGFloat = 0
     func install(model: Model) {

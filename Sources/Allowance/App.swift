@@ -2,7 +2,7 @@ import SwiftUI
 import AppKit
 @MainActor final class AppController: NSObject, NSApplicationDelegate {
     static weak var shared: AppController?
-    private var companion: NSWindow?
+    private var companion: CompanionWindow?
     private var settings: NSWindow?
     private var wakeObserver: NSObjectProtocol?
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -36,15 +36,17 @@ import AppKit
             window.setFrameOrigin(NSPoint(x: area.midX - window.frame.width / 2,
                                           y: area.midY - window.frame.height / 2))
         }
+        window.restorePosition()
         window.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
         companion = window
     }
+    func rememberCurrentPosition() { companion?.savePosition() }
     func showSettings() {
         if let settings {
             settings.makeKeyAndOrderFront(nil)
         } else {
-            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 290), styleMask: [.titled, .closable], backing: .buffered, defer: false)
+            let window = NSWindow(contentRect: NSRect(x: 0, y: 0, width: 460, height: 390), styleMask: [.titled, .closable], backing: .buffered, defer: false)
             window.title = "Allowance Settings"
             window.level = .floating
             window.isReleasedWhenClosed = false
@@ -62,6 +64,7 @@ import AppKit
         return true
     }
     func applicationWillTerminate(_ notification: Notification) {
+        companion?.savePosition()
         Model.shared.stop()
         if let wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver) }
     }
