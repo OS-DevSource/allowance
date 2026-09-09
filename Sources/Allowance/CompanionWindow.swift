@@ -33,8 +33,14 @@ final class CompanionWindow: NSWindow, NSWindowDelegate {
         let panel = Panel(model: model, onHeightChange: { [weak self] height in
             DispatchQueue.main.async { self?.resize(to: height) }
         })
-        let host = NSHostingController(rootView: AnyView(panel.fixedSize(horizontal: false, vertical: true)
-            .frame(maxHeight: .infinity, alignment: .top)))
+        // Keep oversized animated content pinned to the top so growth reveals downward.
+        let root = GeometryReader { proxy in
+            panel
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(width: proxy.size.width, height: proxy.size.height, alignment: .top)
+                .clipped()
+        }
+        let host = NSHostingController(rootView: AnyView(root))
         host.sizingOptions = []
         hosting = host
         contentViewController = host
