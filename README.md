@@ -1,21 +1,12 @@
 <div align="center">
   <img src="Assets/icon.png" width="120" alt="Allowance icon">
   <h1>Allowance</h1>
-  <p>A quiet little window into your Codex capacity.</p>
+  <p>Your remaining Codex allowance, at a glance.</p>
 </div>
 
-Allowance is an independent macOS menu-bar companion that shows your remaining Codex account allowance and reset dates. A compact charcoal interface, soft teal light, and just the details you need.
+Allowance is a macOS menu-bar companion that shows your remaining Codex account allowance and reset dates. Keep its window on top, remember its position, and expand additional usage details when you need them.
 
 **Unofficial. Not affiliated with, endorsed by, or supported by OpenAI.**
-
-## A small app, on purpose
-
-- Main account allowance at a glance, with a single capacity header; smoothly expand or collapse the additional windows.
-- Remaining percentages and reset dates in your local time zone.
-- A pinnable companion window that stays above ordinary windows when enabled.
-- One shared refresh loop, every five minutes while the app runs, plus manual refresh and refresh after wake when stale.
-- Clear setup, sign-in, network, and stale-data states.
-- Native dark material, Liquid Glass on supported systems, keyboard controls, and Reduce Motion / Reduce Transparency support.
 
 ![Compact Allowance window](docs/compact.png)
 
@@ -26,83 +17,105 @@ Allowance is an independent macOS menu-bar companion that shows your remaining C
 
 </details>
 
-Screenshots show a real account at capture time, not a promise of a particular plan or allowance. The app only displays windows returned by Codex.
+The app displays only the allowance windows Codex returns for your account. Screenshots are examples from a real account; your available windows and percentages may differ.
 
-## Build and run
+## Set up Allowance
 
-This first release is **source-first**. There is no notarized download yet.
+**You currently need to build the app from source.** The [release downloads](https://github.com/OS-DevSource/allowance/releases) contain source code, not a ready-to-install or notarized app. The steps below build the latest code on `main`.
 
-Requirements:
+### 1. Check your build tools
 
-- A Mac. Deployment target: macOS 13 or later. Liquid Glass requires macOS 26 or later; earlier versions use native material.
-- **Xcode 26+ or equivalent Command Line Tools with the macOS 26+ SDK**, including Swift 6.2 or newer. Runtime availability checks do not make newer SDK APIs available to an older compiler.
-- The official [Codex CLI](https://developers.openai.com/codex/cli/), installed and signed in using `codex login`.
+You need Xcode 26 or newer, or equivalent Apple Command Line Tools, with **Swift 6.2+ and the macOS 26+ SDK**. Check the tools selected on your Mac in Terminal:
 
-Clone and build:
+```sh
+swift --version
+xcrun --sdk macosx --show-sdk-version
+```
+
+If either command is missing or reports an older version, install a compatible version of [Xcode or Command Line Tools](https://developer.apple.com/xcode/resources/) before continuing. With full Xcode installed, open it once to complete setup and select its tools under **Xcode → Settings → Locations → Command Line Tools**.
+
+The app targets macOS 13+, but that is not a guarantee of compatibility on every older Mac. See [tested environments and limitations](docs/verification.md). Liquid Glass requires macOS 26+; earlier systems use native material.
+
+### 2. Install and sign in to Codex CLI
+
+Follow the official [Codex CLI setup guide](https://developers.openai.com/codex/cli/), then run:
+
+```sh
+codex --version
+codex login
+```
+
+Use the ChatGPT account whose allowance you want to see. Allowance uses the CLI's existing sign-in; there is no separate login inside Allowance. Installing the Codex desktop app alone does not establish that the CLI is available to Allowance.
+
+### 3. Build and open the app
+
+Run these commands in Terminal:
 
 ```sh
 git clone https://github.com/OS-DevSource/allowance.git
 cd allowance
-./build-app.sh
+./build-app.sh --release
 open Allowance.app
 ```
 
-The app opens its companion window on the primary display and adds **Allowance** to the menu bar. Closing the companion keeps the menu-bar app running. Use **More options → Open companion window** to bring it back. The pin controls whether the companion floats above other ordinary windows; it does not force the app into every Space or above full-screen apps.
+The build creates `Allowance.app` inside the repository folder for your Mac's architecture. On launch, a companion window opens and **Allowance** appears in the menu bar. After the first successful refresh, you should see remaining allowance, reset dates, and an update time. If you see a setup error instead, use the troubleshooting section below.
 
-The build produces an app for the current Mac's architecture, with a local ad-hoc signature. It does not install anything into Applications, register a login item, or publish a release. Use `./build-app.sh --release` for an optimized local build.
+You can keep the app in that folder or quit it and copy `Allowance.app` to Applications using Finder. The build does not install it automatically or enable launch at login. It uses a local ad-hoc signature, not Developer ID signing or notarization.
 
-## Connect your CLI
+## Use Allowance
 
-Allowance searches `~/.local/bin/codex`, `/opt/homebrew/bin/codex`, `/usr/local/bin/codex`, and absolute directories on its inherited `PATH`. Finder-launched apps often have a smaller `PATH` than Terminal.
+| Control | What it does |
+| --- | --- |
+| **All usage details** | Expands additional allowance windows, when your account reports them. |
+| **Refresh** (circular arrow) | Reads the latest allowance. Automatic refresh runs every five minutes while the app is open. |
+| **Keep on top** (pin) | Keeps the companion above ordinary windows. It does not put it above full-screen apps or on every Space. |
+| **More options** (ellipsis) | Opens Settings or brings back the companion window. |
+| **Quit Allowance** (power) | Stops the app and automatic refresh. Closing the window alone leaves the menu-bar app running. |
 
-If detection fails, open **More options → Settings → Choose Codex…** and select your trusted Codex executable. To locate it in Terminal:
+Reset dates use your Mac's local time zone. If a refresh fails, the last successful reading stays visible with a warning and its original update time. Missing data is not shown as a zero balance.
+
+### Remember the window position
+
+Open **More options → Settings**. **Remember window position** is on by default: move the companion where you want it, and it will reopen there. Expanding usage details preserves its top edge.
+
+Turn the setting off to use the centered launch position. Turning it back on saves the current location. Positions are saved only on your Mac; if a saved display is unavailable, the app keeps the window's title bar reachable on an available display.
+
+## Troubleshooting
+
+| Problem | What to try |
+| --- | --- |
+| Build reports an unsupported SDK or Swift tools version | Recheck both commands in step 1. Installing Xcode is not enough if an older Command Line Tools installation is still selected. |
+| **Codex CLI was not found** | Run `command -v codex` in Terminal. In **More options → Settings → Choose Codex…**, select that executable. In the file chooser, press **Command–Shift–G** to enter its containing folder, including a hidden folder such as `~/.local/bin`. |
+| The selected executable is no longer available | Choose its new location in Settings, or select **Use automatic detection**. Select the executable file, not an app bundle or folder. |
+| Codex needs you to sign in again | Run `codex login` in Terminal, complete sign-in, then click Refresh in Allowance. |
+| Unable to reach Codex or a request times out | Check your connection and retry Refresh. Requests time out after 25 seconds. |
+| Unexpected response or no allowance windows | Check `codex --version` and your sign-in. The app depends on an experimental CLI interface; API-key-only accounts may not expose subscription allowance windows. Include your CLI version when reporting a persistent problem. |
+| The companion window is closed | Click **Allowance** in the menu bar, then **More options → Open companion window**. |
+
+Automatic detection checks `~/.local/bin/codex`, `/opt/homebrew/bin/codex`, `/usr/local/bin/codex`, and absolute directories on the app's inherited `PATH`. Finder-launched apps can have a different `PATH` from Terminal, which is why choosing the executable explicitly can help.
+
+For unresolved problems, [open an issue](https://github.com/OS-DevSource/allowance/issues) with your macOS version, CLI version, source commit or release, and visible error message. Do not include authentication files or private logs.
+
+## Update a source build
+
+Quit Allowance first. In your existing repository folder, run:
 
 ```sh
-command -v codex
-codex --version
+git pull --ff-only
+./build-app.sh --release
+open Allowance.app
 ```
 
-You can return to automatic detection in Settings. The selected path is saved locally. Allowance never runs your selection through a shell.
+If you copied the app to Applications, replace that copy with the newly built app after quitting it. Local preferences are retained. If Git reports local changes or cannot fast-forward, resolve that before rebuilding; do not discard changes you want to keep. Allowance has no automatic updater.
 
-If sign-in expires, run `codex login` in Terminal and refresh. API-key-only accounts may not expose subscription allowance windows. Unavailable data is never displayed as a zero balance. If a refresh fails, the last successful reading stays visible with a warning and its original update time.
+## Privacy and allowance use
 
-## Does refreshing spend my allowance?
+Allowance requests account limits through the local Codex app server. Refreshing does not start a model turn or request a reset credit. Codex handles authentication and network access; Allowance adds no analytics or advertising services. See [Privacy](PRIVACY.md) for local storage and diagnostic guidance.
 
-The app sends initialization messages and the read-only `account/rateLimits/read` request to the local Codex app server. It never starts a model turn or requests a reset credit. It makes no separate OpenAI API call or paid-service integration.
+## Development
 
-The installed Codex CLI handles its existing authentication and network access. This is an **experimental interface**, verified locally with `codex-cli 0.144.1`; future protocol or authentication changes may require an update.
-
-See [Privacy](PRIVACY.md) for what is stored and what is not.
-
-## Development and verification
-
-No third-party Swift package dependencies.
-
-```sh
-./check.sh                     # deterministic checks; no account/network required
-ALLOWANCE_LIVE_TEST=1 ./check.sh # additionally read your real account
-swift test                     # optional XCTest suite; requires full Xcode
-```
-
-The portable checks cover parsing, legacy fallback, CLI selection, initialization, errors, timeouts, duplicate-refresh prevention, and recovery after failure. They create disposable local fake servers; test data is never compiled into the application.
-
-GitHub Actions builds with Xcode 26.3 and runs the portable checks plus XCTest. It never needs credentials or live account access. See [verification notes](docs/verification.md) for the exact local coverage and remaining compatibility gaps.
-
-The app icon is an original seven-circle teal honeycomb on charcoal, matching the header motif. It is included as a multi-resolution `.icns` bundle resource and loaded explicitly for the running app. Reproduce it with:
-
-```sh
-swift scripts/make-icon.swift Assets
-iconutil -c icns Assets/Allowance.iconset -o Assets/Allowance.icns
-```
-
-## Contributing
-
-Keep the app small. See [CONTRIBUTING.md](CONTRIBUTING.md) before sending a change. Never attach authentication files or unredacted account logs to an issue.
-
-### Window position
-
-Settings → **Remember window position** is on by default. Allowance saves the companion window’s position only on your Mac and restores it at launch. Expanding usage details preserves the top edge. If a saved display is unavailable, the window returns to a reachable position on an available display. Turn the setting off to use the centered launch position; turning it back on remembers the current location.
+See [Contributing](CONTRIBUTING.md) for build checks and development commands, [verification notes](docs/verification.md) for test coverage, and the [changelog](CHANGELOG.md) for changes.
 
 ## License
 
-[MIT](LICENSE) © 2026 John Rodriguez. Source and original artwork were created independently; no Codex Fuel implementation, artwork, or assets are included.
+[MIT](LICENSE) © 2026 John Rodriguez.

@@ -8,6 +8,7 @@ The app saves these preferences using macOS UserDefaults:
 
 - Whether all usage details are expanded.
 - Whether the companion window is pinned above ordinary windows.
+- Whether window-position memory is enabled and the last saved companion position. Turning memory off stops updates and restoration; it does not erase the saved coordinates.
 - Your selected CLI executable path, if you choose one.
 
 The latest usage snapshot and last-update time are held in memory. Allowance does not save usage history, forecasts, account identifiers, reset-credit information, or raw server responses to disk. Error messages shown by the app are categorized rather than copying arbitrary server output.
