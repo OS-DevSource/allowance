@@ -52,9 +52,9 @@ Use the ChatGPT account whose allowance you want to see. Allowance uses the CLI'
 Run these commands in Terminal:
 
 ```sh
-git clone https://github.com/OS-DevSource/allowance.git
-cd allowance
-./build-app.sh --release
+git clone https://github.com/OS-DevSource/allowance.git &&
+cd allowance &&
+./build-app.sh --release &&
 open Allowance.app
 ```
 
@@ -101,12 +101,18 @@ For unresolved problems, [open an issue](https://github.com/OS-DevSource/allowan
 Quit Allowance first. In your existing repository folder, run:
 
 ```sh
-git pull --ff-only
+git pull --ff-only &&
 ./build-app.sh --release
-open Allowance.app
 ```
 
-If you copied the app to Applications, replace that copy with the newly built app after quitting it. Local preferences are retained. If Git reports local changes or cannot fast-forward, resolve that before rebuilding; do not discard changes you want to keep. Allowance has no automatic updater.
+If either command fails, stop and resolve the error before continuing. If Git reports local changes or cannot fast-forward, preserve any changes you want to keep.
+
+After the build succeeds, follow the path for where you keep the app:
+
+- **Repository folder:** run `open Allowance.app` from that folder.
+- **Applications:** use Finder to copy the newly built `Allowance.app` into Applications, replace the old copy, and open the app from Applications.
+
+Local preferences are retained. Allowance has no automatic updater.
 
 ## Privacy and allowance use
 
