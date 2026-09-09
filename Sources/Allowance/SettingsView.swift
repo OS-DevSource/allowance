@@ -7,9 +7,18 @@ import AppKit
 
 struct SettingsView: View {
     @ObservedObject var model: Model
+    @AppStorage("rememberWindowPosition") private var rememberWindowPosition = true
     @StateObject private var state = SettingsState()
     var body: some View {
         VStack(alignment: .leading, spacing: 14) {
+            Text("Window").font(.headline)
+            Toggle("Remember window position", isOn: $rememberWindowPosition)
+                .onChange(of: rememberWindowPosition) { enabled in
+                    if enabled { AppController.shared?.rememberCurrentPosition() }
+                }
+            Text("Reopen the companion where you last placed it. Saved only on this Mac.")
+                .font(.caption).foregroundStyle(.secondary)
+            Divider()
             Text("Codex connection").font(.title2.bold())
             Text("Allowance reads usage through your installed, signed-in Codex CLI.")
                 .foregroundStyle(.secondary)

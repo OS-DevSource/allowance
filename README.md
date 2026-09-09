@@ -99,6 +99,10 @@ iconutil -c icns Assets/Allowance.iconset -o Assets/Allowance.icns
 
 Keep the app small. See [CONTRIBUTING.md](CONTRIBUTING.md) before sending a change. Never attach authentication files or unredacted account logs to an issue.
 
+### Window position
+
+Settings → **Remember window position** is on by default. Allowance saves the companion window’s position only on your Mac and restores it at launch. Expanding usage details preserves the top edge. If a saved display is unavailable, the window returns to a reachable position on an available display. Turn the setting off to use the centered launch position; turning it back on remembers the current location.
+
 ## License
 
 [MIT](LICENSE) © 2026 John Rodriguez. Source and original artwork were created independently; no Codex Fuel implementation, artwork, or assets are included.
