@@ -2,8 +2,14 @@
 
 ## Unreleased
 
+## 0.1.2 — 2026-09-10
+
+- Add a ready-to-open universal macOS download for Apple Silicon and Intel.
+- Replace the source-build setup path with download, Applications, and one-time macOS approval instructions.
+- Add reproducible release packaging and a SHA-256 checksum.
 - Remember the companion window position locally, with a setting to restore centered startup.
 - Clarify source setup, daily controls, troubleshooting, updates, and local preference storage.
+- Keep expansion anchored at the top so additional details roll smoothly into view.
 
 ## 0.1.1 — 2026-09-08
 
