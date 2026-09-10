@@ -36,7 +36,7 @@ struct SettingsView: View {
             Text("Need to sign in? Run codex login in Terminal, then click Refresh. To check your CLI version, run codex --version.")
                 .font(.caption).foregroundStyle(.secondary)
             HStack {
-                Link("Official Codex setup", destination: URL(string: "https://developers.openai.com/codex/cli/")!)
+                Link("Official Codex setup", destination: URL(string: "https://learn.chatgpt.com/docs/codex/cli")!)
                 Spacer()
                 Button(model.loading ? "Refreshing…" : "Refresh") { model.refresh() }.disabled(model.loading)
             }

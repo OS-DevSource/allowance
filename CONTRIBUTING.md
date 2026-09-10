@@ -2,7 +2,7 @@
 
 Keep Allowance focused on account allowance and a compact macOS experience. Preserve keyboard access, contrast, reduced-motion behavior, and the small dependency footprint. There are no third-party Swift package dependencies.
 
-Start with the [README setup steps](README.md#set-up-allowance). Full Xcode 26+ is needed for XCTest; compatible Command Line Tools can build the app and run the standalone checks.
+Start with the [README setup steps](README.md#download-and-set-up-allowance). Full Xcode 26+ is needed for XCTest; Swift 6.2+ Command Line Tools with the macOS 26+ SDK can build the app and run the standalone checks.
 
 ## Before sending a change
 
@@ -27,7 +27,7 @@ Describe the user-visible problem, resulting behavior, validation, and any remai
 ALLOWANCE_LIVE_TEST=1 ./check.sh
 ```
 
-This additionally reads the account signed in through your local Codex CLI. Use it only when needed for integration verification. Default tests use disposable local fake servers; never enable live account tests in CI.
+This command also reads the account signed in through your local Codex CLI. Use it for integration verification only. Default tests use disposable local fake servers; never enable live account tests in CI.
 
 ## Rebuild the icon
 
@@ -38,7 +38,7 @@ swift scripts/make-icon.swift Assets
 iconutil -c icns Assets/Allowance.iconset -o Assets/Allowance.icns
 ```
 
-Only regenerate artwork when intentionally changing it.
+Regenerate artwork only when changing the icon.
 
 ## Repository hygiene and reports
 

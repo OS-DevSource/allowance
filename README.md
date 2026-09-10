@@ -25,26 +25,26 @@ The app displays only the allowance windows Codex returns for your account. Scre
 
 **[Download Allowance for macOS](https://github.com/OS-DevSource/allowance/releases/latest/download/Allowance-macOS-universal.dmg)**
 
-Open the downloaded disk image, drag **Allowance** onto the **Applications** shortcut, then eject the disk image. The same download supports Apple Silicon and Intel Macs and targets macOS 13 or later. Prefer an archive? A [universal ZIP](https://github.com/OS-DevSource/allowance/releases/latest/download/Allowance-macOS-universal.zip) is available as a fallback. Intel hardware and macOS 13–26 have not yet been tested directly; see [verification and compatibility](docs/verification.md).
+Open the downloaded disk image, drag **Allowance** onto the **Applications** shortcut, then eject the disk image. The DMG includes a universal build for Apple Silicon and Intel Macs and targets macOS 13 or later. A [universal ZIP](https://github.com/OS-DevSource/allowance/releases/latest/download/Allowance-macOS-universal.zip) is also available. Hardware testing does not cover Intel Macs or macOS 13–26; see [verification and compatibility](docs/verification.md).
 
-Allowance is free and open source, but this build is not yet signed with a paid Apple Developer ID or notarized. macOS will therefore block the first launch:
+Allowance is free and open source. This release is ad-hoc signed and not Apple-notarized, so macOS blocks the first launch:
 
 1. Open Allowance from Applications. When macOS says it cannot verify the developer, click **Done**.
 2. Open **System Settings → Privacy & Security**.
-3. Scroll to **Security**, click **Open Anyway** beside Allowance, then confirm **Open Anyway**.
+3. Scroll to **Security**, click **Open Anyway** beside Allowance, then confirm by clicking **Open**.
 
-This creates an exception for the app so it can open normally afterward. A newly downloaded update may require the same approval. See [Apple's guide to safely opening Mac apps](https://support.apple.com/102445) for the current system wording. Never disable Gatekeeper or paste a quarantine-removal command to install Allowance.
+This creates an exception for the app so it can open normally afterward. A newly downloaded update may require the same approval. See [Apple's guide to safely opening Mac apps](https://support.apple.com/en-us/102445) for the current system wording. Never disable Gatekeeper or paste a quarantine-removal command to install Allowance.
 
 ### 2. Connect Codex
 
-Allowance reads usage through the official Codex CLI. Follow the [Codex CLI setup guide](https://developers.openai.com/codex/cli/), then run:
+Allowance reads usage through the official Codex CLI. Follow the [Codex CLI setup guide](https://learn.chatgpt.com/docs/codex/cli), then run:
 
 ```sh
 codex --version
 codex login
 ```
 
-Use the ChatGPT account whose allowance you want to see. Allowance uses the CLI's existing sign-in; there is no separate login inside Allowance. Installing the Codex desktop app alone does not establish that the CLI is available to Allowance.
+Use the ChatGPT account whose allowance you want to see. Allowance uses the CLI's existing sign-in; there is no separate login inside Allowance. Allowance requires the CLI even if you already installed the Codex desktop app.
 
 Open Allowance from Applications. Its companion window appears and **Allowance** is added to the menu bar. After the first successful refresh, you should see your remaining allowance, reset dates, and an update time. If the CLI is not detected, choose **Setup & connection…** in Allowance, then select the Codex executable or open the linked official setup guide.
 

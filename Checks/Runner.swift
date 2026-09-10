@@ -43,7 +43,6 @@ private final class SequenceReader: @unchecked Sendable {
 
         func server(_ response: String?, notification: Bool = false) throws -> String {
             let url = scratch.appendingPathComponent(UUID().uuidString)
-            // JSON fixtures are test-only; never used in the app.
             let quoted = (response ?? "").replacingOccurrences(of: "'", with: "'\\''")
             let body = """
             #!/bin/sh
