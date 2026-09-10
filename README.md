@@ -19,26 +19,25 @@ Allowance is a macOS menu-bar companion that shows your remaining Codex account 
 
 The app displays only the allowance windows Codex returns for your account. Screenshots are examples from a real account; your available windows and percentages may differ.
 
-## Set up Allowance
+## Download and set up Allowance
 
-**You currently need to build the app from source.** The [release downloads](https://github.com/OS-DevSource/allowance/releases) contain source code, not a ready-to-install or notarized app. The steps below build the latest code on `main`.
+### 1. Install the app
 
-### 1. Check your build tools
+**[Download Allowance for macOS](https://github.com/OS-DevSource/allowance/releases/latest/download/Allowance-macOS-universal.zip)**
 
-You need Xcode 26 or newer, or equivalent Apple Command Line Tools, with **Swift 6.2+ and the macOS 26+ SDK**. Check the tools selected on your Mac in Terminal:
+Unzip the download, then drag **Allowance** into your Applications folder. The same download supports Apple Silicon and Intel Macs and targets macOS 13 or later. Intel hardware and macOS 13–26 have not yet been tested directly; see [verification and compatibility](docs/verification.md).
 
-```sh
-swift --version
-xcrun --sdk macosx --show-sdk-version
-```
+Allowance is free and open source, but this build is not yet signed with a paid Apple Developer ID or notarized. macOS will therefore block the first launch:
 
-If either command is missing or reports an older version, install a compatible version of [Xcode or Command Line Tools](https://developer.apple.com/xcode/resources/) before continuing. With full Xcode installed, open it once to complete setup and select its tools under **Xcode → Settings → Locations → Command Line Tools**.
+1. Open Allowance from Applications. When macOS says it cannot verify the developer, click **Done**.
+2. Open **System Settings → Privacy & Security**.
+3. Scroll to **Security**, click **Open Anyway** beside Allowance, then confirm **Open Anyway**.
 
-The app targets macOS 13+, but that is not a guarantee of compatibility on every older Mac. See [tested environments and limitations](docs/verification.md). Liquid Glass requires macOS 26+; earlier systems use native material.
+This creates an exception for the app so it can open normally afterward. A newly downloaded update may require the same approval. See [Apple's guide to safely opening Mac apps](https://support.apple.com/102445) for the current system wording. Never disable Gatekeeper or paste a quarantine-removal command to install Allowance.
 
-### 2. Install and sign in to Codex CLI
+### 2. Connect Codex
 
-Follow the official [Codex CLI setup guide](https://developers.openai.com/codex/cli/), then run:
+Allowance reads usage through the official Codex CLI. Follow the [Codex CLI setup guide](https://developers.openai.com/codex/cli/), then run:
 
 ```sh
 codex --version
@@ -47,20 +46,7 @@ codex login
 
 Use the ChatGPT account whose allowance you want to see. Allowance uses the CLI's existing sign-in; there is no separate login inside Allowance. Installing the Codex desktop app alone does not establish that the CLI is available to Allowance.
 
-### 3. Build and open the app
-
-Run these commands in Terminal:
-
-```sh
-git clone https://github.com/OS-DevSource/allowance.git &&
-cd allowance &&
-./build-app.sh --release &&
-open Allowance.app
-```
-
-The build creates `Allowance.app` inside the repository folder for your Mac's architecture. On launch, a companion window opens and **Allowance** appears in the menu bar. After the first successful refresh, you should see remaining allowance, reset dates, and an update time. If you see a setup error instead, use the troubleshooting section below.
-
-You can keep the app in that folder or quit it and copy `Allowance.app` to Applications using Finder. The build does not install it automatically or enable launch at login. It uses a local ad-hoc signature, not Developer ID signing or notarization.
+Open Allowance from Applications. Its companion window appears and **Allowance** is added to the menu bar. After the first successful refresh, you should see your remaining allowance, reset dates, and an update time. If the CLI is not detected, choose **Setup & connection…** in Allowance, then select the Codex executable or open the linked official setup guide.
 
 ## Use Allowance
 
@@ -84,7 +70,7 @@ Turn the setting off to use the centered launch position. Turning it back on sav
 
 | Problem | What to try |
 | --- | --- |
-| Build reports an unsupported SDK or Swift tools version | Recheck both commands in step 1. Installing Xcode is not enough if an older Command Line Tools installation is still selected. |
+| macOS will not open Allowance | Follow the one-time **Privacy & Security → Open Anyway** steps above. Do not disable Gatekeeper. |
 | **Codex CLI was not found** | Run `command -v codex` in Terminal. In **More options → Settings → Choose Codex…**, select that executable. In the file chooser, press **Command–Shift–G** to enter its containing folder, including a hidden folder such as `~/.local/bin`. |
 | The selected executable is no longer available | Choose its new location in Settings, or select **Use automatic detection**. Select the executable file, not an app bundle or folder. |
 | Codex needs you to sign in again | Run `codex login` in Terminal, complete sign-in, then click Refresh in Allowance. |
@@ -96,21 +82,9 @@ Automatic detection checks `~/.local/bin/codex`, `/opt/homebrew/bin/codex`, `/us
 
 For unresolved problems, [open an issue](https://github.com/OS-DevSource/allowance/issues) with your macOS version, CLI version, source commit or release, and visible error message. Do not include authentication files or private logs.
 
-## Update a source build
+## Update Allowance
 
-Quit Allowance first. In your existing repository folder, run:
-
-```sh
-git pull --ff-only &&
-./build-app.sh --release
-```
-
-If either command fails, stop and resolve the error before continuing. If Git reports local changes or cannot fast-forward, preserve any changes you want to keep.
-
-After the build succeeds, follow the path for where you keep the app:
-
-- **Repository folder:** run `open Allowance.app` from that folder.
-- **Applications:** use Finder to copy the newly built `Allowance.app` into Applications, replace the old copy, and open the app from Applications.
+Quit Allowance, download the latest app using the button above, and replace the existing copy in Applications. macOS may ask for the one-time approval again because the downloaded app has changed.
 
 Local preferences are retained. Allowance has no automatic updater.
 
@@ -118,9 +92,18 @@ Local preferences are retained. Allowance has no automatic updater.
 
 Allowance requests account limits through the local Codex app server. Refreshing does not start a model turn or request a reset credit. Codex handles authentication and network access; Allowance adds no analytics or advertising services. See [Privacy](PRIVACY.md) for local storage and diagnostic guidance.
 
-## Development
+## Build from source
 
-See [Contributing](CONTRIBUTING.md) for build checks and development commands, [verification notes](docs/verification.md) for test coverage, and the [changelog](CHANGELOG.md) for changes.
+Building is optional and intended for contributors. You need Swift 6.2+ and the macOS 26+ SDK:
+
+```sh
+git clone https://github.com/OS-DevSource/allowance.git
+cd allowance
+./build-app.sh --release
+open Allowance.app
+```
+
+Use `./build-app.sh --release --universal` for both Apple Silicon and Intel. See [Contributing](CONTRIBUTING.md) for checks and development commands, [verification notes](docs/verification.md) for coverage, and the [changelog](CHANGELOG.md) for changes.
 
 ## License
 

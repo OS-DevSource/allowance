@@ -8,6 +8,7 @@ The deployment target is macOS 13+, but compatibility claims should be based on 
 | --- | --- |
 | Apple Silicon with macOS 27 SDK / Swift 6.4 Command Line Tools and `codex-cli 0.144.1` | Local build and runtime checks on September 8–9, 2026. |
 | GitHub `macos-15` runner with Xcode 26.3 | Standalone checks, XCTest, app build, and signature verification passed for [window-position PR #1](https://github.com/OS-DevSource/allowance/pull/1). |
+| Universal release build with macOS 27 SDK / Swift 6.4 Command Line Tools | The v0.1.2 package was compiled with arm64 and x86_64 slices, ad-hoc signed, archived, extracted, and revalidated locally. |
 
 See [GitHub Actions](https://github.com/OS-DevSource/allowance/actions) for results on a specific commit. Reproduce the checks using [Contributing](../CONTRIBUTING.md).
 
@@ -30,6 +31,6 @@ Local app checks covered:
 - Direct menu-bar popover automation was limited; most interaction checks used the companion window and Settings.
 - Only the CLI version listed above was live-tested. Future protocol or authentication changes may require app updates.
 - The local Command Line Tools installation lacks XCTest; full-Xcode XCTest passed in CI.
-- Bundles are ad-hoc signed, not Developer ID signed or notarized. Distribution remains source-only. File-provider folders can add Finder metadata after signing; the build script clears bundle metadata before signing.
+- Release bundles are ad-hoc signed, not Developer ID signed or notarized. macOS requires the documented one-time **Privacy & Security → Open Anyway** approval for a downloaded build. File-provider folders can add Finder metadata after signing; the build script clears bundle metadata before signing.
 
 README screenshots show real usage at capture time. No mock account data is included in the app target.

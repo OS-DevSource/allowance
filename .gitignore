@@ -1,6 +1,7 @@
 .build/
 .swiftpm/
 *.app/
+/dist/
 .DS_Store
 Assets/Allowance.iconset/
 .env
