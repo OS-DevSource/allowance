@@ -1,6 +1,6 @@
 import AppKit
 
-// Original vector drawing. No downloaded artwork or external fonts.
+// Original seven-circle honeycomb artwork matching the header; no external art or fonts.
 let destination = CommandLine.arguments.dropFirst().first ?? "Assets"
 let directory = URL(fileURLWithPath: destination)
 try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
@@ -19,8 +19,6 @@ func draw(size: Int) -> Data {
     NSGradient(starting: NSColor(calibratedWhite: 0.18, alpha: 1), ending: NSColor(calibratedWhite: 0.055, alpha: 1))!.draw(in: background, angle: -70)
     NSColor.white.withAlphaComponent(0.12).setStroke(); background.lineWidth = 3; background.stroke()
     let teal = NSColor(calibratedRed: 0.30, green: 0.88, blue: 0.73, alpha: 1)
-    // Seven circles form the same honeycomb arrangement used by the header.
-    // Draw the geometry ourselves rather than exporting a system-symbol asset.
     let radius: CGFloat = 79
     let spacing: CGFloat = 178
     let centers = [NSPoint(x: 512, y: 512)] + (0..<6).map { index in

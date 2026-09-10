@@ -19,7 +19,7 @@ Each refresh starts a short-lived `codex app-server --stdio` child, initializes 
 
 Codex itself uses its existing configuration, authentication, networking, and any logging or telemetry behavior configured for that CLI. Those are separate from Allowance. Allowance does not add analytics, crash-upload services, or advertising SDKs.
 
-The setup documentation link opens your browser only when clicked. No repository telemetry or update checks are performed.
+The setup link opens your browser when you click it. Allowance does not check for updates.
 
 ## Sharing diagnostics
 
