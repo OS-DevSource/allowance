@@ -9,6 +9,7 @@ The deployment target is macOS 13+, but compatibility claims should be based on 
 | Apple Silicon with macOS 27 SDK / Swift 6.4 Command Line Tools and `codex-cli 0.144.1` | Local build and runtime checks on September 8–9, 2026. |
 | GitHub `macos-15` runner with Xcode 26.3 | Standalone checks, XCTest, app build, and signature verification passed for [window-position PR #1](https://github.com/OS-DevSource/allowance/pull/1). |
 | Universal release build with macOS 27 SDK / Swift 6.4 Command Line Tools | The v0.1.2 package was compiled with arm64 and x86_64 slices, ad-hoc signed, archived, extracted, and revalidated locally. |
+| DMG release build with macOS 27 tools | The v0.1.3 image was verified, mounted read-only, and checked for its app, Applications shortcut, icon, version, arm64 and x86_64 slices, and valid ad-hoc signature. |
 
 See [GitHub Actions](https://github.com/OS-DevSource/allowance/actions) for results on a specific commit. Reproduce the checks using [Contributing](../CONTRIBUTING.md).
 
