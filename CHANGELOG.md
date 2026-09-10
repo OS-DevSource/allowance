@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+## 0.1.3 — 2026-09-10
+
+- Add a polished DMG with the Allowance icon and an Applications shortcut as the primary download.
+- Keep the universal ZIP as an alternate download and provide checksums for both formats.
+
 ## 0.1.2 — 2026-09-10
 
 - Add a ready-to-open universal macOS download for Apple Silicon and Intel.

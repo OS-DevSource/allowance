@@ -23,9 +23,9 @@ The app displays only the allowance windows Codex returns for your account. Scre
 
 ### 1. Install the app
 
-**[Download Allowance for macOS](https://github.com/OS-DevSource/allowance/releases/latest/download/Allowance-macOS-universal.zip)**
+**[Download Allowance for macOS](https://github.com/OS-DevSource/allowance/releases/latest/download/Allowance-macOS-universal.dmg)**
 
-Unzip the download, then drag **Allowance** into your Applications folder. The same download supports Apple Silicon and Intel Macs and targets macOS 13 or later. Intel hardware and macOS 13–26 have not yet been tested directly; see [verification and compatibility](docs/verification.md).
+Open the downloaded disk image, drag **Allowance** onto the **Applications** shortcut, then eject the disk image. The same download supports Apple Silicon and Intel Macs and targets macOS 13 or later. Prefer an archive? A [universal ZIP](https://github.com/OS-DevSource/allowance/releases/latest/download/Allowance-macOS-universal.zip) is available as a fallback. Intel hardware and macOS 13–26 have not yet been tested directly; see [verification and compatibility](docs/verification.md).
 
 Allowance is free and open source, but this build is not yet signed with a paid Apple Developer ID or notarized. macOS will therefore block the first launch:
 
@@ -84,7 +84,7 @@ For unresolved problems, [open an issue](https://github.com/OS-DevSource/allowan
 
 ## Update Allowance
 
-Quit Allowance, download the latest app using the button above, and replace the existing copy in Applications. macOS may ask for the one-time approval again because the downloaded app has changed.
+Quit Allowance, download and open the latest disk image, then drag Allowance onto Applications and replace the existing copy. Eject the disk image when finished. macOS may ask for the one-time approval again because the downloaded app has changed.
 
 Local preferences are retained. Allowance has no automatic updater.
 

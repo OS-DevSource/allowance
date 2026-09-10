@@ -12,7 +12,7 @@ Run from the repository root:
 ./check.sh       # deterministic checks; no account or network needed
 swift test       # XCTest; requires full Xcode
 ./build-app.sh   # debug app bundle
-./scripts/package-release.sh # universal release ZIP and checksum
+./scripts/package-release.sh # universal DMG, ZIP, and checksums
 ```
 
 Then open `Allowance.app` and exercise the affected user flow. For window changes, include launch, close/reopen, compact/expanded layouts, and relevant settings. A passing build alone does not verify those interactions.
