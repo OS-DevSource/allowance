@@ -6,8 +6,6 @@
 
 Allowance is a macOS menu-bar companion that shows your remaining Codex account allowance and reset dates. Keep its window on top, remember its position, and expand additional usage details when you need them.
 
-**Unofficial. Not affiliated with, endorsed by, or supported by OpenAI.**
-
 ![Compact Allowance window](docs/compact.png)
 
 <details>
@@ -104,6 +102,8 @@ open Allowance.app
 ```
 
 Use `./build-app.sh --release --universal` for both Apple Silicon and Intel. See [Contributing](CONTRIBUTING.md) for checks and development commands, [verification notes](docs/verification.md) for coverage, and the [changelog](CHANGELOG.md) for changes.
+
+Codex and OpenAI are trademarks of OpenAI. Allowance is an independent project and is not affiliated with or endorsed by OpenAI.
 
 ## License
 
