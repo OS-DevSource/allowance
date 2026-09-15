@@ -4,6 +4,7 @@ import AppKit
     static weak var shared: AppController?
     private var companion: CompanionWindow?
     private var settings: NSWindow?
+    private var menuBar: NativeMenuBar?
     private var wakeObserver: NSObjectProtocol?
     func applicationDidFinishLaunching(_ notification: Notification) {
         Self.shared = self
@@ -11,6 +12,7 @@ import AppKit
            let icon = NSImage(contentsOf: iconURL) {
             NSApp.applicationIconImage = icon
         }
+        menuBar = NativeMenuBar(model: .shared)
         Model.shared.start()
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { _ in
             Task { @MainActor in Model.shared.refreshIfStale() }
@@ -71,32 +73,16 @@ import AppKit
     }
 
 }
-@main struct AllowanceApp: App {
-    @NSApplicationDelegateAdaptor(AppController.self) private var delegate
-    @StateObject private var model = Model.shared
-    private let menuBarIcon: NSImage? = {
-        guard let url = Bundle.main.url(forResource: "AllowanceMenuBar", withExtension: "png"),
-              let image = NSImage(contentsOf: url) else { return nil }
-        image.size = NSSize(width: 16, height: 16)
-        image.isTemplate = true
-        return image
-    }()
-    var body: some Scene {
-        MenuBarExtra {
-            Panel(model: model, isMenuPopover: true)
-        } label: {
-            if let menuBarIcon {
-                Image(nsImage: menuBarIcon)
-                    .interpolation(.high)
-                    .frame(width: 16, height: 16)
-                    .accessibilityLabel("Allowance")
-            }
-        }.menuBarExtraStyle(.window)
+@main enum AllowanceApp {
+    @MainActor static func main() {
+        let application = NSApplication.shared
+        let delegate = AppController()
+        application.delegate = delegate
+        application.run()
     }
 }
 struct Panel: View {
     @ObservedObject var model: Model
-    var isMenuPopover = false
     var onHeightChange: ((CGFloat) -> Void)? = nil
     @AppStorage("keepWindowOnTop") private var isPinned = false
     @AppStorage("showAllUsageDetails") private var showAllDetails = false
@@ -172,9 +158,6 @@ struct Panel: View {
                     .help("More options").accessibilityLabel("More options")
                 Button {
                     isPinned.toggle()
-                    if isPinned && isMenuPopover {
-                        AppController.shared?.showWindow(model: model)
-                    }
                 } label: {
                     Image(systemName: isPinned ? "pin.fill" : "pin")
                         .foregroundStyle(isPinned ? tint : Color.primary)
@@ -193,8 +176,8 @@ struct Panel: View {
             }
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.32), value: showAllDetails)
-        .background(WindowLevelBridge(isPinned: isPinned && !isMenuPopover))
-        .modifier(DarkGlassSurface(isMenuPopover: isMenuPopover))
+        .background(WindowLevelBridge(isPinned: isPinned))
+        .modifier(DarkGlassSurface())
         .preferredColorScheme(.dark)
         .onAppear { model.refreshIfStale() }
     }
@@ -228,20 +211,10 @@ struct Panel: View {
 
 /// Native material follows the user's Reduce Transparency preference.
 private struct DarkGlassSurface: ViewModifier {
-    let isMenuPopover: Bool
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     func body(content: Content) -> some View {
         if reduceTransparency {
-            content.background(Color(white: isMenuPopover ? 0.18 : 0.10))
-        } else if isMenuPopover {
-            content
-                .background(DesktopMaterial(material: .menu))
-                .background(Color(white: 0.18).opacity(0.55))
-                .clipShape(.rect(cornerRadius: 12))
-                .overlay {
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(.white.opacity(0.10), lineWidth: 1)
-                }
+            content.background(Color(white: 0.10))
         } else if #available(macOS 26.0, *) {
             content
                 .background(Color.black.opacity(0.69))
@@ -254,18 +227,15 @@ private struct DarkGlassSurface: ViewModifier {
     }
 }
 private struct DesktopMaterial: NSViewRepresentable {
-    var material: NSVisualEffectView.Material = .hudWindow
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = material
+        view.material = .hudWindow
         view.blendingMode = .behindWindow
         view.state = .active
         view.appearance = NSAppearance(named: .darkAqua)
         return view
     }
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {
-        view.material = material
-    }
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
 }
 private struct AllowanceBar: ProgressViewStyle {
     let color: Color

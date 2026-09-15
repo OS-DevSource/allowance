@@ -46,6 +46,8 @@ Use the ChatGPT account whose allowance you want to see. Allowance uses the CLI'
 
 Open Allowance from Applications. Its companion window appears and **Allowance** is added to the menu bar. After the first successful refresh, you should see your remaining allowance, reset dates, and an update time. If the CLI is not detected, choose **Setup & connection…** in Allowance, then select the Codex executable or open the linked official setup guide.
 
+Click the menu bar icon for a compact capacity summary and native macOS menu actions. Additional allowance buckets appear under **All usage details**; the companion window still has the expandable view.
+
 ## Use Allowance
 
 | Control | What it does |
@@ -74,7 +76,7 @@ Turn the setting off to use the centered launch position. Turning it back on sav
 | Codex needs you to sign in again | Run `codex login` in Terminal, complete sign-in, then click Refresh in Allowance. |
 | Unable to reach Codex or a request times out | Check your connection and retry Refresh. Requests time out after 25 seconds. |
 | Unexpected response or no allowance windows | Check `codex --version` and your sign-in. The app depends on an experimental CLI interface; API-key-only accounts may not expose subscription allowance windows. Include your CLI version when reporting a persistent problem. |
-| The companion window is closed | Click **Allowance** in the menu bar, then **More options → Open companion window**. |
+| The companion window is closed | Click the Allowance icon in the menu bar, then **Open companion window**. |
 
 Automatic detection checks `~/.local/bin/codex`, `/opt/homebrew/bin/codex`, `/usr/local/bin/codex`, and absolute directories on the app's inherited `PATH`. Finder-launched apps can have a different `PATH` from Terminal, which is why choosing the executable explicitly can help.
 
