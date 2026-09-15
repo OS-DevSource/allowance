@@ -41,3 +41,30 @@ for points in [16, 32, 128, 256, 512] {
     }
 }
 try draw(size: 1024).write(to: directory.appendingPathComponent("icon.png"))
+
+// A compact, transparent mark for the menu bar, without the app icon's tile.
+let menuSize = 32
+let menuRep = NSBitmapImageRep(bitmapDataPlanes: nil, pixelsWide: menuSize, pixelsHigh: menuSize,
+    bitsPerSample: 8, samplesPerPixel: 4, hasAlpha: true, isPlanar: false,
+    colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0)!
+NSGraphicsContext.saveGraphicsState()
+NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: menuRep)
+NSColor.clear.setFill()
+NSRect(x: 0, y: 0, width: menuSize, height: menuSize).fill()
+let menuCenter = CGFloat(menuSize) / 2
+let menuSpacing: CGFloat = 9.6
+let menuRadius: CGFloat = 4.1
+let menuCenters = [NSPoint(x: menuCenter, y: menuCenter)] + (0..<6).map { index in
+    let angle = CGFloat(index) * .pi / 3
+    return NSPoint(x: menuCenter + menuSpacing * cos(angle),
+                   y: menuCenter + menuSpacing * sin(angle))
+}
+let menuTint = NSColor.black
+for center in menuCenters {
+    menuTint.setFill()
+    NSBezierPath(ovalIn: NSRect(x: center.x - menuRadius, y: center.y - menuRadius,
+                               width: menuRadius * 2, height: menuRadius * 2)).fill()
+}
+NSGraphicsContext.restoreGraphicsState()
+try menuRep.representation(using: .png, properties: [:])!
+    .write(to: directory.appendingPathComponent("AllowanceMenuBar.png"))

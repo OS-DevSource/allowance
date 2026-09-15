@@ -32,6 +32,7 @@ bin_dir=$(swift build "${build_arguments[@]}" --show-bin-path)
 mkdir -p 'Allowance.app/Contents/MacOS' 'Allowance.app/Contents/Resources'
 cp "$bin_dir/Allowance" 'Allowance.app/Contents/MacOS/Allowance'
 cp Assets/Allowance.icns 'Allowance.app/Contents/Resources/Allowance.icns'
+cp Assets/AllowanceMenuBar.png 'Allowance.app/Contents/Resources/AllowanceMenuBar.png'
 cat > 'Allowance.app/Contents/Info.plist' <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">

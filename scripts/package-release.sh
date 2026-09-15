@@ -48,6 +48,8 @@ rm -f "$archive_path" "$dmg_path" "$archive_checksum_path" "$dmg_checksum_path"
 ditto -c -k --sequesterRsrc --keepParent Allowance.app "$archive_path"
 
 ditto Allowance.app "$dmg_staging_dir/Allowance.app"
+xattr -cr "$dmg_staging_dir/Allowance.app"
+codesign --verify --strict "$dmg_staging_dir/Allowance.app"
 ln -s /Applications "$dmg_staging_dir/Applications"
 cp Assets/Allowance.icns "$dmg_staging_dir/.VolumeIcon.icns"
 cp "$dmg_layout_path" "$dmg_staging_dir/.DS_Store"
