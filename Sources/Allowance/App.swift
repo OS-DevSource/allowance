@@ -29,6 +29,7 @@ import AppKit
         window.isOpaque = false
         window.backgroundColor = NSColor(calibratedWhite: 0.065, alpha: 1)
         window.appearance = NSAppearance(named: .darkAqua)
+        window.collectionBehavior.insert(.moveToActiveSpace)
         window.isReleasedWhenClosed = false
         window.install(model: model)
         if let screen = NSScreen.screens.first {
@@ -73,12 +74,23 @@ import AppKit
 @main struct AllowanceApp: App {
     @NSApplicationDelegateAdaptor(AppController.self) private var delegate
     @StateObject private var model = Model.shared
+    private let menuBarIcon: NSImage? = {
+        guard let url = Bundle.main.url(forResource: "AllowanceMenuBar", withExtension: "png"),
+              let image = NSImage(contentsOf: url) else { return nil }
+        image.size = NSSize(width: 16, height: 16)
+        image.isTemplate = true
+        return image
+    }()
     var body: some Scene {
         MenuBarExtra {
             Panel(model: model, isMenuPopover: true)
         } label: {
-            Image(systemName: "gauge.with.dots.needle.33percent")
-            Text("Allowance")
+            if let menuBarIcon {
+                Image(nsImage: menuBarIcon)
+                    .interpolation(.high)
+                    .frame(width: 16, height: 16)
+                    .accessibilityLabel("Allowance")
+            }
         }.menuBarExtraStyle(.window)
     }
 }
@@ -182,7 +194,7 @@ struct Panel: View {
         }
         .animation(reduceMotion ? nil : .easeInOut(duration: 0.32), value: showAllDetails)
         .background(WindowLevelBridge(isPinned: isPinned && !isMenuPopover))
-        .modifier(DarkGlassSurface())
+        .modifier(DarkGlassSurface(isMenuPopover: isMenuPopover))
         .preferredColorScheme(.dark)
         .onAppear { model.refreshIfStale() }
     }
@@ -216,10 +228,20 @@ struct Panel: View {
 
 /// Native material follows the user's Reduce Transparency preference.
 private struct DarkGlassSurface: ViewModifier {
+    let isMenuPopover: Bool
     @Environment(\.accessibilityReduceTransparency) private var reduceTransparency
     func body(content: Content) -> some View {
         if reduceTransparency {
-            content.background(Color(white: 0.10))
+            content.background(Color(white: isMenuPopover ? 0.18 : 0.10))
+        } else if isMenuPopover {
+            content
+                .background(DesktopMaterial(material: .menu))
+                .background(Color(white: 0.18).opacity(0.55))
+                .clipShape(.rect(cornerRadius: 12))
+                .overlay {
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(.white.opacity(0.10), lineWidth: 1)
+                }
         } else if #available(macOS 26.0, *) {
             content
                 .background(Color.black.opacity(0.69))
@@ -232,15 +254,18 @@ private struct DarkGlassSurface: ViewModifier {
     }
 }
 private struct DesktopMaterial: NSViewRepresentable {
+    var material: NSVisualEffectView.Material = .hudWindow
     func makeNSView(context: Context) -> NSVisualEffectView {
         let view = NSVisualEffectView()
-        view.material = .hudWindow
+        view.material = material
         view.blendingMode = .behindWindow
         view.state = .active
         view.appearance = NSAppearance(named: .darkAqua)
         return view
     }
-    func updateNSView(_ view: NSVisualEffectView, context: Context) {}
+    func updateNSView(_ view: NSVisualEffectView, context: Context) {
+        view.material = material
+    }
 }
 private struct AllowanceBar: ProgressViewStyle {
     let color: Color
