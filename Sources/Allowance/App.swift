@@ -14,7 +14,7 @@ import AppKit
             NSApp.applicationIconImage = icon
         }
         menuBar = NativeMenuBar(model: .shared)
-        // UIElement apps have no application menu to handle the usual Quit shortcut.
+        // Accessory apps have no application menu to handle the usual Quit shortcut.
         quitShortcutMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
             let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
             if modifiers == [.command], event.charactersIgnoringModifiers?.lowercased() == "q" {
@@ -87,6 +87,10 @@ import AppKit
 @main enum AllowanceApp {
     @MainActor static func main() {
         let application = NSApplication.shared
+        // Keep LSUIElement out of the bundle so launchers such as Stream Deck can
+        // discover Allowance. Accessory activation preserves its menu-bar-only
+        // behavior without a persistent Dock icon or application menu.
+        application.setActivationPolicy(.accessory)
         let delegate = AppController()
         application.delegate = delegate
         application.run()
