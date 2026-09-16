@@ -38,6 +38,7 @@ cat > 'Allowance.app/Contents/Info.plist' <<'PLIST'
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0"><dict>
 <key>CFBundleName</key><string>Allowance</string>
+<key>CFBundleDisplayName</key><string>Allowance</string>
 <key>CFBundleIdentifier</key><string>local.john.allowance</string>
 <key>CFBundleExecutable</key><string>Allowance</string>
 <key>CFBundlePackageType</key><string>APPL</string>
@@ -46,7 +47,6 @@ cat > 'Allowance.app/Contents/Info.plist' <<'PLIST'
 <key>CFBundleIconFile</key><string>Allowance.icns</string>
 <key>NSHumanReadableCopyright</key><string>Copyright © 2026 John Rodriguez. MIT License.</string>
 <key>LSMinimumSystemVersion</key><string>13.0</string>
-<key>LSUIElement</key><true/>
 </dict></plist>
 PLIST
 xattr -cr Allowance.app
