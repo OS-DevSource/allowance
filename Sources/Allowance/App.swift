@@ -6,6 +6,7 @@ import AppKit
     private var settings: NSWindow?
     private var menuBar: NativeMenuBar?
     private var wakeObserver: NSObjectProtocol?
+    private var quitShortcutMonitor: Any?
     func applicationDidFinishLaunching(_ notification: Notification) {
         Self.shared = self
         if let iconURL = Bundle.main.url(forResource: "Allowance", withExtension: "icns"),
@@ -13,6 +14,15 @@ import AppKit
             NSApp.applicationIconImage = icon
         }
         menuBar = NativeMenuBar(model: .shared)
+        // UIElement apps have no application menu to handle the usual Quit shortcut.
+        quitShortcutMonitor = NSEvent.addLocalMonitorForEvents(matching: .keyDown) { event in
+            let modifiers = event.modifierFlags.intersection([.command, .option, .control, .shift])
+            if modifiers == [.command], event.charactersIgnoringModifiers?.lowercased() == "q" {
+                NSApp.terminate(nil)
+                return nil
+            }
+            return event
+        }
         Model.shared.start()
         wakeObserver = NSWorkspace.shared.notificationCenter.addObserver(forName: NSWorkspace.didWakeNotification, object: nil, queue: .main) { _ in
             Task { @MainActor in Model.shared.refreshIfStale() }
@@ -70,6 +80,7 @@ import AppKit
         companion?.savePosition()
         Model.shared.stop()
         if let wakeObserver { NSWorkspace.shared.notificationCenter.removeObserver(wakeObserver) }
+        if let quitShortcutMonitor { NSEvent.removeMonitor(quitShortcutMonitor) }
     }
 
 }

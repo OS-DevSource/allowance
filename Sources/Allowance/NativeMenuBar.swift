@@ -77,7 +77,9 @@ import SwiftUI
         menu.addItem(refresh)
         menu.addItem(actionItem("Settings…", #selector(openSettings)))
         menu.addItem(.separator())
-        menu.addItem(actionItem("Quit Allowance", #selector(quit)))
+        let quit = actionItem("Quit Allowance", #selector(quit))
+        quit.keyEquivalent = "q"
+        menu.addItem(quit)
     }
 
     private func informationalItem(_ title: String) -> NSMenuItem {
@@ -151,6 +153,8 @@ private enum MenuResetDate {
     static func label(timestamp: Double?) -> String {
         guard let timestamp else { return "Reset time unavailable" }
         let date = Date(timeIntervalSince1970: timestamp)
-        return "Resets \(date.formatted(.dateTime.month(.abbreviated).day().hour().minute()))"
+        let day = date.formatted(.dateTime.month(.defaultDigits).day())
+        let time = date.formatted(date: .omitted, time: .shortened)
+        return "Resets \(day) · \(time)"
     }
 }
