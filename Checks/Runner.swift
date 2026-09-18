@@ -41,7 +41,7 @@ private final class SequenceReader: @unchecked Sendable {
         let legacy = Data(#"{"rateLimits":{"limitId":"codex","primary":null,"secondary":null},"rateLimitsByLimitId":null}"#.utf8)
         check(try JSONDecoder().decode(Usage.self, from: legacy).buckets.count == 1, "Legacy fallback")
 
-        func server(_ response: String?, notification: Bool = false) throws -> String {
+        func server(_ response: String?, notification: Bool = false, method: String = "account/rateLimits/read") throws -> String {
             let url = scratch.appendingPathComponent(UUID().uuidString)
             let quoted = (response ?? "").replacingOccurrences(of: "'", with: "'\\''")
             let body = """
@@ -52,7 +52,7 @@ private final class SequenceReader: @unchecked Sendable {
             IFS= read -r request
             case "$request" in *initialized*) ;; *) exit 9;; esac
             IFS= read -r request
-            case "$request" in *account/rateLimits/read*) ;; *) exit 10;; esac
+            case "$request" in *\(method)*) ;; *) exit 10;; esac
             \(notification ? "printf '%s\\n' '{\"method\":\"notice\",\"params\":{}}'" : "")
             \(response == nil ? "IFS= read -r request" : "printf '%s\\n' '" + quoted + "'")
             """
@@ -74,6 +74,45 @@ private final class SequenceReader: @unchecked Sendable {
         let started = Date()
         do { _ = try UsageClient.read(executable: server(nil), timeout: 0.15); fatalError("Timeout") }
         catch { check(error as? UsageError == .timedOut && Date().timeIntervalSince(started) < 2, "Timeout returns promptly and reaps child") }
+        let tokenFixture = #"{"summary":{"lifetimeTokens":14876244643},"dailyUsageBuckets":[{"startDate":"2026-09-17","tokens":23571621},{"startDate":"2026-09-16","tokens":0}]}"#
+        let activity = try TokenActivity.decode(Data(tokenFixture.utf8))
+        let now = ISO8601DateFormatter().date(from: "2026-09-17T23:59:00Z")!
+        let days = activity.days(now: now, timeZone: TokenActivity.calendar.timeZone)
+        let chicago = TimeZone(identifier: "America/Chicago")!
+        let localCalendar = TokenActivity.displayCalendar(timeZone: chicago)
+        let utcFriday = ISO8601DateFormatter().date(from: "2026-09-18T00:01:00Z")!
+        let localDays = activity.days(now: utcFriday, timeZone: chicago)
+        check(localCalendar.component(.weekday, from: utcFriday) == 5 && localDays[4].tokens == 23571621 && localDays[5].tokens == nil, "UTC Friday remains local Thursday with service date totals preserved")
+        let localSunday = ISO8601DateFormatter().date(from: "2026-09-20T05:00:00Z")!
+        check(activity.days(now: localSunday.addingTimeInterval(-1), timeZone: chicago).first?.date != activity.days(now: localSunday, timeZone: chicago).first?.date, "Week rolls over at local Sunday midnight")
+        let dstSunday = ISO8601DateFormatter().date(from: "2026-03-08T12:00:00Z")!
+        let dstDays = activity.days(now: dstSunday, timeZone: chicago)
+        check(dstDays.map { localCalendar.component(.weekday, from: $0.date) } == Array(1...7) && dstDays[1].date.timeIntervalSince(dstDays[0].date) == 23 * 3600, "Calendar days remain aligned across daylight saving")
+        let tokyo = TimeZone(identifier: "Asia/Tokyo")!
+        check(TokenActivity.displayCalendar(timeZone: tokyo).component(.weekday, from: utcFriday) == 6 && activity.days(now: utcFriday, timeZone: tokyo)[4].tokens == 23571621, "Eastern time zones keep service dates in their correct columns")
+        check(days.map { TokenActivity.calendar.component(.weekday, from: $0.date) } == Array(1...7) && days[4].tokens == 23571621, "Current UTC week runs Sunday through Saturday with today's count in place")
+        check(days[3].tokens == 0 && days[2].tokens == nil, "Explicit zero stays zero; missing dates stay unavailable")
+        check(activity.days(now: now.addingTimeInterval(120), timeZone: TokenActivity.calendar.timeZone)[5].tokens == nil, "UTC midnight rolls today forward without inventing usage")
+        let sunday = ISO8601DateFormatter().date(from: "2026-09-13T00:00:00Z")!
+        let saturday = ISO8601DateFormatter().date(from: "2026-09-19T23:59:00Z")!
+        check(activity.days(now: sunday, timeZone: TokenActivity.calendar.timeZone).first?.date == sunday && activity.days(now: sunday, timeZone: TokenActivity.calendar.timeZone).allSatisfy { $0.tokens == nil }, "Sunday starts the week and future totals remain unavailable")
+        check(activity.days(now: saturday, timeZone: TokenActivity.calendar.timeZone).first?.date == sunday && activity.days(now: saturday.addingTimeInterval(120), timeZone: TokenActivity.calendar.timeZone).first?.date == ISO8601DateFormatter().date(from: "2026-09-20T00:00:00Z"), "Saturday remains in the week until Sunday midnight")
+        check(TokenActivity.compact(23571621) == "23.6M" && TokenActivity.compact(14876244643) == "14.9B", "Compact token formatting handles millions and billions")
+        check(try TokenActivity.decode(Data(#"{"summary":null,"dailyUsageBuckets":null}"#.utf8)).dailyUsageBuckets == nil, "Null token metrics remain unavailable")
+        check(try TokenActivity.decode(Data(#"{"summary":null,"dailyUsageBuckets":[]}"#.utf8)).days(now: now, timeZone: TokenActivity.calendar.timeZone).allSatisfy { $0.tokens == nil }, "Empty history does not invent zero days")
+        for invalid in [
+            #"{}"#,
+            #"{"dailyUsageBuckets":[{"startDate":"2026-02-30","tokens":1}]}"#,
+            #"{"dailyUsageBuckets":[{"startDate":"2026-09-17","tokens":-1}]}"#,
+            #"{"dailyUsageBuckets":[{"startDate":"2026-09-17","tokens":1},{"startDate":"2026-09-17","tokens":2}]}"#
+        ] {
+            do { _ = try TokenActivity.decode(Data(invalid.utf8)); fatalError("Invalid token history accepted") }
+            catch { check(error as? UsageError == .malformed, "Reject invalid token history") }
+        }
+        let tokenServer = try server("{\"id\":2,\"result\":\(tokenFixture)}", notification: true, method: "account/usage/read")
+        check(try TokenActivityClient.read(executable: tokenServer).summary?.lifetimeTokens == 14876244643, "Token endpoint handshake, notification and decoding")
+        do { _ = try TokenActivityClient.read(executable: server(#"{"id":2,"error":{"message":"Method not found"}}"#, method: "account/usage/read")); fatalError("Unsupported method accepted") }
+        catch { check(error as? UsageError == .unavailable, "Older CLI token endpoint degrades gracefully") }
         check(try CLIResolver.resolve(override: success) == success, "Explicit executable selection")
         do { _ = try CLIResolver.resolve(override: scratch.path); fatalError("Directory accepted") }
         catch { check(error as? UsageError == .invalidPath, "Reject directory as executable") }
@@ -84,10 +123,14 @@ private final class SequenceReader: @unchecked Sendable {
         let preferences = UserDefaults(suiteName: suite)!
         defer { preferences.removePersistentDomain(forName: suite) }
         let sequence = SequenceReader(usage)
-        let model = Model(preferences: preferences, reader: { try sequence.read($0) })
+        let tokenSequence = SequenceReader(usage)
+        let model = Model(preferences: preferences, reader: { try sequence.read($0) }, tokenReader: {
+            _ = try tokenSequence.read($0)
+            return activity
+        })
         func settle() async throws {
             for _ in 0..<200 {
-                if !model.loading { return }
+                if !model.loading && !model.tokensLoading { return }
                 try await Task.sleep(nanoseconds: 10_000_000)
             }
             fatalError("Model did not settle")
@@ -96,14 +139,27 @@ private final class SequenceReader: @unchecked Sendable {
         try await settle()
         check(sequence.count == 1 && model.usage != nil, "One startup timer and no concurrent refreshes")
         let timestamp = model.updated
+        let tokenTimestamp = model.tokensUpdated
+        check(model.tokenActivity != nil && !model.tokensError, "Model loads token history independently")
         model.refresh(); try await settle()
         check(model.usage != nil && model.updated == timestamp && model.error != nil, "Failure preserves and marks last successful reading")
+        check(model.tokenActivity != nil && model.tokensUpdated == tokenTimestamp && model.tokensError, "Token failure preserves last history and flags it stale")
         model.refresh(); try await settle()
         check(model.error == nil && model.updated != nil && sequence.count == 3, "Recovery clears stale error")
+        check(!model.tokensError && tokenSequence.count == 3, "Token recovery clears stale history flag")
+        let partial = Model(preferences: preferences, reader: { _ in usage }, tokenReader: { _ in throw UsageError.unavailable })
+        partial.refresh()
+        for _ in 0..<200 {
+            if !partial.loading && !partial.tokensLoading { break }
+            try await Task.sleep(nanoseconds: 10_000_000)
+        }
+        check(partial.usage != nil && partial.error == nil && partial.tokensError, "History failure does not hide successful allowance")
         model.refreshIfStale(); check(sequence.count == 3, "Opening a fresh panel does not fetch again")
         model.stop()
         if ProcessInfo.processInfo.environment["ALLOWANCE_LIVE_TEST"] == "1" {
             check(try !UsageClient.read().buckets.isEmpty, "Live account read")
+            let liveTokens = try TokenActivityClient.read()
+            check(liveTokens.dailyUsageBuckets != nil, "Live token activity read")
         }
     }
 }

@@ -152,6 +152,8 @@ struct Panel: View {
                 HStack { ProgressView().controlSize(.small); Text("Reading account allowance…").foregroundStyle(.secondary) }.padding(.vertical, 22)
             }
             Divider()
+            TokenActivityView(model: model)
+            Divider()
             HStack {
                 VStack(alignment: .leading, spacing: 3) {
                     if model.loading { Text("Refreshing…") }
