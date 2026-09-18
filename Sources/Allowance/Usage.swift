@@ -72,6 +72,13 @@ struct UsageClient {
     }
     // Separate transport entry point allows local fake-server tests without account access.
     static func read(executable: String, timeout: TimeInterval = 25) throws -> Usage {
+        let data = try request(executable: executable, method: "account/rateLimits/read", timeout: timeout)
+        guard let usage = try? JSONDecoder().decode(Usage.self, from: data),
+              usage.rateLimits != nil || usage.rateLimitsByLimitId != nil else { throw UsageError.malformed }
+        return usage
+    }
+    /// Shared read-only transport. Callers validate their own response contract.
+    static func request(executable: String, method: String, timeout: TimeInterval = 25) throws -> Data {
         let process = Process(), input = Pipe(), output = Pipe()
         process.executableURL = URL(fileURLWithPath: executable)
         process.arguments = ["app-server", "--stdio"]
@@ -126,13 +133,11 @@ struct UsageClient {
                     guard object["result"] != nil else { throw UsageError.malformed }
                     initialized = true
                     try send(["method": "initialized"])
-                    try send(["id": 2, "method": "account/rateLimits/read"])
+                    try send(["id": 2, "method": method])
                 } else if id == 2 && initialized {
                     guard let result = object["result"],
-                          let data = try? JSONSerialization.data(withJSONObject: result),
-                          let usage = try? JSONDecoder().decode(Usage.self, from: data),
-                          usage.rateLimits != nil || usage.rateLimitsByLimitId != nil else { throw UsageError.malformed }
-                    return usage
+                          let data = try? JSONSerialization.data(withJSONObject: result) else { throw UsageError.malformed }
+                    return data
                 }
             }
         }

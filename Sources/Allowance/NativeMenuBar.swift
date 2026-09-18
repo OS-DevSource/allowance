@@ -6,6 +6,7 @@ import SwiftUI
     private let model: Model
     private let statusItem: NSStatusItem
     private let menu = NSMenu(title: "Allowance")
+    private var tokenHost: NSHostingView<TokenActivityView>?
 
     init(model: Model) {
         self.model = model
@@ -62,6 +63,28 @@ import SwiftUI
             details.submenu = submenu
             menu.addItem(details)
         }
+
+        menu.addItem(.separator())
+        let tokenView = TokenActivityView(model: model, onHeightChange: { [weak self] height in
+            DispatchQueue.main.async {
+                guard let self, let host = self.tokenHost, height.isFinite, height > 0 else { return }
+                let target = ceil(height)
+                guard host.frame.height != target else { return }
+                host.setFrameSize(NSSize(width: 300, height: target))
+                if let item = self.menu.items.first(where: { $0.view === host }) {
+                    // Auto-validation is disabled; notify AppKit that this item's view size changed.
+                    self.menu.itemChanged(item)
+                }
+            }
+        }, horizontalInset: 12)
+        let tokenHost = NSHostingView(rootView: tokenView)
+        tokenHost.frame = NSRect(x: 0, y: 0, width: 300, height: 42)
+        tokenHost.sizingOptions = []
+        self.tokenHost = tokenHost
+        let tokenItem = NSMenuItem()
+        tokenItem.view = tokenHost
+        menu.addItem(tokenItem)
+        menu.addItem(.separator())
 
         menu.addItem(informationalItem(model.updated.map {
             "Updated \($0.formatted(date: .omitted, time: .shortened))"
