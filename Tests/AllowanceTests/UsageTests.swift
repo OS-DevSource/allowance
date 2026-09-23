@@ -7,7 +7,7 @@ final class UsageTests: XCTestCase {
         XCTAssertEqual(Window(usedPercent: 9, windowDurationMins: 10080, resetsAt: nil).title, "Weekly")
     }
     func testCapacityColorThresholds() {
-        func level(remaining: Double) -> CapacityLevel {
+        func level(_ remaining: Double) -> CapacityLevel {
             Window(usedPercent: 100 - remaining, windowDurationMins: nil, resetsAt: nil).capacityLevel
         }
         XCTAssertEqual(level(20.1), .normal)
