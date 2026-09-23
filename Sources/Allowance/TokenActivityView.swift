@@ -15,7 +15,7 @@ struct TokenActivityView: View {
 
     var body: some View {
         TimelineView(.periodic(from: .now, by: 60)) { context in
-            let days = model.tokenActivity?.days(now: context.date) ?? []
+            let days = model.tokenActivity?.weekOrderedDays(now: context.date) ?? []
             let todayDate = TokenActivity.displayCalendar().startOfDay(for: context.date)
             VStack(alignment: .leading, spacing: 4) {
                 Button {
@@ -46,7 +46,6 @@ struct TokenActivityView: View {
                         HStack(alignment: .bottom, spacing: 6) {
                             ForEach(days) { day in
                                 let today = day.date == todayDate
-                                let future = day.date > todayDate
                                 let inspecting = day.id == (hoveredDay ?? focusedDay)
                                 VStack(spacing: 7) {
                                     ZStack(alignment: .bottom) {
@@ -54,7 +53,7 @@ struct TokenActivityView: View {
                                             RoundedRectangle(cornerRadius: 2)
                                                 .fill(today ? tint : (inspecting ? Color.primary.opacity(0.7) : Color.secondary.opacity(0.4)))
                                                 .frame(width: 18, height: tokens == 0 ? 1 : max(2, 56 * CGFloat(Double(tokens) / Double(maximum))))
-                                        } else if !future {
+                                        } else {
                                             Text("—").font(.system(size: 10)).foregroundStyle(.secondary)
                                         }
                                     }.frame(height: 56, alignment: .bottom)
@@ -68,8 +67,8 @@ struct TokenActivityView: View {
                                         else if hoveredDay == day.id { hoveredDay = nil }
                                     }
                                     .accessibilityElement(children: .ignore)
-                                    .accessibilityLabel(today ? "Today" : weekday(day.date))
-                                    .accessibilityValue(future ? "Upcoming" : (day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported"))
+                                    .accessibilityLabel(today ? "Today" : dayLabel(day.date))
+                                    .accessibilityValue(day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported")
                             }
                         }
                         let inspected = days.first { $0.id == (hoveredDay ?? focusedDay) }
@@ -106,10 +105,10 @@ struct TokenActivityView: View {
         formatter.dateFormat = "EEE"
         return formatter.string(from: date)
     }
+    private func dayLabel(_ date: Date) -> String {
+        date.formatted(.dateTime.weekday(.wide).month(.wide).day())
+    }
     private func detail(_ day: TokenActivity.Day) -> String {
-        if day.date > TokenActivity.displayCalendar().startOfDay(for: Date()) {
-            return "\(weekday(day.date)) · Upcoming"
-        }
-        return "\(weekday(day.date)) · \(day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported")"
+        return "\(day.date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())) · \(day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported")"
     }
 }

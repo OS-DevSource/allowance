@@ -1,10 +1,18 @@
 import Foundation
 import Darwin
+enum CapacityLevel {
+    case normal, warning, critical
+}
 struct Window: Decodable {
     let usedPercent: Double
     let windowDurationMins: Int?
     let resetsAt: Double?
     var remaining: Double { min(100, max(0, 100 - usedPercent)) }
+    var capacityLevel: CapacityLevel {
+        if remaining <= 10 { return .critical }
+        if remaining <= 20 { return .warning }
+        return .normal
+    }
     var title: String {
         guard let m = windowDurationMins else { return "Allowance window" }
         if m == 10080 { return "Weekly" }

@@ -158,7 +158,7 @@ private struct MenuCapacitySummary: View {
                         Text("\(Int(window.remaining.rounded()))% left").monospacedDigit()
                     }.font(.system(size: 12))
                     ProgressView(value: window.remaining, total: 100)
-                        .controlSize(.small).tint(window.remaining <= 15 ? .orange : tint)
+                        .controlSize(.small).tint(window.capacityLevel.color(normal: tint))
                         .accessibilityLabel("\(window.title), \(Int(window.remaining)) percent remaining")
                     Text(window.resetsAt.map {
                         MenuResetDate.label(timestamp: $0)

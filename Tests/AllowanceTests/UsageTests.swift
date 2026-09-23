@@ -6,6 +6,16 @@ final class UsageTests: XCTestCase {
         XCTAssertEqual(Window(usedPercent: -5, windowDurationMins: 300, resetsAt: nil).remaining, 100)
         XCTAssertEqual(Window(usedPercent: 9, windowDurationMins: 10080, resetsAt: nil).title, "Weekly")
     }
+    func testCapacityColorThresholds() {
+        func level(remaining: Double) -> CapacityLevel {
+            Window(usedPercent: 100 - remaining, windowDurationMins: nil, resetsAt: nil).capacityLevel
+        }
+        XCTAssertEqual(level(20.1), .normal)
+        XCTAssertEqual(level(20), .warning)
+        XCTAssertEqual(level(10.1), .warning)
+        XCTAssertEqual(level(10), .critical)
+        XCTAssertEqual(level(0), .critical)
+    }
     func testBucketsPreferMapAndPreserveMissingWindows() throws {
         let data = Data(#"{"rateLimits":{"limitId":"legacy","primary":null,"secondary":null},"rateLimitsByLimitId":{"codex":{"limitId":"codex","primary":{"usedPercent":9,"windowDurationMins":10080,"resetsAt":null},"secondary":null}}}"#.utf8)
         let result = try JSONDecoder().decode(Usage.self, from: data)
