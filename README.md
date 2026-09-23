@@ -53,7 +53,7 @@ Click the menu bar icon for a compact capacity summary and native macOS menu act
 | Control | What it does |
 | --- | --- |
 | **All usage details** | Expands additional allowance windows, when your account reports them. |
-| **Token activity** | Shows the current Sunday–Saturday week of service-reported token totals, when available. |
+| **Token activity** | Shows the most recent seven local calendar days of service-reported token totals, including today, when available. |
 | **Refresh** (circular arrow) | Reads the latest allowance and token activity independently. Automatic refresh runs every five minutes while the app is open. |
 | **Keep on top** (pin) | Keeps the companion above ordinary windows. It does not put it above full-screen apps or on every Space. |
 | **More options** (ellipsis) | Opens Settings or brings back the companion window. |
@@ -61,7 +61,7 @@ Click the menu bar icon for a compact capacity summary and native macOS menu act
 
 Reset dates use your Mac's local time zone. If a refresh fails, the last successful reading stays visible with a warning and its original update time. Missing data is not shown as a zero balance.
 
-Token activity uses `account/usage/read`, not a conversion of allowance percentages. The week and today highlight follow the user's local time zone automatically. Daily totals retain their service-reported UTC date labels, rather than being redistributed into local-day totals; missing totals show a dash. Exact counts appear on hover or keyboard focus and are available to VoiceOver. This view does not infer model-level totals or read local session transcripts. Older CLI versions or accounts without daily history can still display allowance limits.
+Token activity uses `account/usage/read`, not a conversion of allowance percentages. The chart keeps Sunday–Saturday positions while showing the most recent seven local calendar dates, including today, without clearing at the Sunday rollover. The seven-day window and today highlight follow the user's local time zone automatically. Daily totals retain their service-reported UTC date labels, rather than being redistributed into local-day totals; missing totals show a dash. Exact counts and dates appear on hover or keyboard focus and are available to VoiceOver. This view does not infer model-level totals or read local session transcripts. Older CLI versions or accounts without daily history can still display allowance limits.
 
 ### Remember the window position
 

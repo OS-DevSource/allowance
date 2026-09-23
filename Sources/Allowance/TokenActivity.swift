@@ -1,6 +1,6 @@
 import Foundation
 
-/// Service date labels are preserved; week boundaries and today follow the user's time zone.
+/// Service date labels are preserved; the rolling seven-day window follows the user's time zone.
 struct TokenActivity: Decodable {
     struct Summary: Decodable {
         let lifetimeTokens: Int64?
@@ -52,14 +52,21 @@ struct TokenActivity: Decodable {
     func days(now: Date = Date(), timeZone: TimeZone = .autoupdatingCurrent) -> [Day] {
         let calendar = Self.displayCalendar(timeZone: timeZone)
         let today = calendar.startOfDay(for: now)
-        let sunday = calendar.date(byAdding: .day, value: 1 - calendar.component(.weekday, from: today), to: today)!
+        let firstDay = calendar.date(byAdding: .day, value: -6, to: today)!
         let counts = Dictionary((dailyUsageBuckets ?? []).compactMap { bucket in
             Self.date(bucket.startDate, calendar: calendar).map { ($0, bucket.tokens) }
         }, uniquingKeysWith: { first, _ in first })
         return (0...6).compactMap { offset in
-            calendar.date(byAdding: .day, value: offset, to: sunday).map {
-                Day(date: $0, tokens: $0 <= today ? counts[$0] : nil)
+            calendar.date(byAdding: .day, value: offset, to: firstDay).map {
+                Day(date: $0, tokens: counts[$0])
             }
+        }
+    }
+    /// Keep the rolling dates, but place their bars in the familiar Sunday–Saturday order.
+    func weekOrderedDays(now: Date = Date(), timeZone: TimeZone = .autoupdatingCurrent) -> [Day] {
+        let calendar = Self.displayCalendar(timeZone: timeZone)
+        return days(now: now, timeZone: timeZone).sorted {
+            calendar.component(.weekday, from: $0.date) < calendar.component(.weekday, from: $1.date)
         }
     }
     static func compact(_ tokens: Int64) -> String {

@@ -1,5 +1,14 @@
 import SwiftUI
 import AppKit
+extension CapacityLevel {
+    func color(normal: Color) -> Color {
+        switch self {
+        case .normal: return normal
+        case .warning: return .orange
+        case .critical: return .red
+        }
+    }
+}
 @MainActor final class AppController: NSObject, NSApplicationDelegate {
     static weak var shared: AppController?
     private var companion: CompanionWindow?
@@ -216,7 +225,7 @@ struct Panel: View {
                 Text("\(w.remaining, specifier: "%.0f")%").font(.system(size: percentageSize, weight: .medium, design: .rounded)).monospacedDigit()
                 Text("left").font(.caption).foregroundStyle(.secondary)
             }
-            ProgressView(value: w.remaining, total: 100).progressViewStyle(AllowanceBar(color: w.remaining <= 15 ? .orange : tint)).accessibilityLabel("\(w.title), \(Int(w.remaining)) percent remaining")
+            ProgressView(value: w.remaining, total: 100).progressViewStyle(AllowanceBar(color: w.capacityLevel.color(normal: tint))).accessibilityLabel("\(w.title), \(Int(w.remaining)) percent remaining")
             if let timestamp = w.resetsAt {
                 let date = Date(timeIntervalSince1970: timestamp)
                 Text("Resets \(date.formatted(date: .abbreviated, time: .shortened))")
