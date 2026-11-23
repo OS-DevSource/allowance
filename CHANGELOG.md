@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.4 (2026-11-23)
+
+- Shorten the main heading to CODEX.
+- Add an expandable token activity chart that keeps the latest seven dates in Sunday-to-Saturday order.
+- Refine the native menu bar popover and companion window behavior across Spaces.
+- Make Allowance selectable in Stream Deck.
+
 ## 0.1.3 (2026-09-10)
 
 - Add a polished DMG with the Allowance icon and an Applications shortcut as the primary download.

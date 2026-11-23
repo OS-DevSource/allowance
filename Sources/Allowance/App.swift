@@ -119,7 +119,7 @@ struct Panel: View {
                     .font(.system(size: 18, weight: .medium))
                     .foregroundStyle(tint)
                     .accessibilityHidden(true)
-                Text("CODEX CAPACITY")
+                Text("CODEX")
                     .font(.system(size: 13, weight: .semibold)).tracking(1.3)
                     .foregroundStyle(.primary.opacity(0.9))
             }.frame(maxWidth: .infinity, alignment: .leading).frame(height: 22)
