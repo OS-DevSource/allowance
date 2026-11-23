@@ -69,7 +69,7 @@ mounted_binary_path="$dmg_mount_dir/Allowance.app/Contents/MacOS/Allowance"
 lipo -verify_arch arm64 "$mounted_binary_path"
 lipo -verify_arch x86_64 "$mounted_binary_path"
 codesign --verify --strict "$dmg_mount_dir/Allowance.app"
-[[ "$(plutil -extract CFBundleShortVersionString raw "$dmg_mount_dir/Allowance.app/Contents/Info.plist")" == '0.1.3' ]]
+[[ "$(plutil -extract CFBundleShortVersionString raw "$dmg_mount_dir/Allowance.app/Contents/Info.plist")" == '0.1.4' ]]
 hdiutil detach "$dmg_mount_dir" -quiet
 dmg_is_mounted=false
 
