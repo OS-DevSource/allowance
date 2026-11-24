@@ -38,8 +38,15 @@ trap cleanup EXIT
 ./build-app.sh --release --universal
 
 binary_path='Allowance.app/Contents/MacOS/Allowance'
-lipo -verify_arch arm64 "$binary_path"
-lipo -verify_arch x86_64 "$binary_path"
+verify_universal() {
+  local binary="$1" architectures
+  architectures="$(lipo -archs "$binary")"
+  if [[ " $architectures " != *" arm64 "* || " $architectures " != *" x86_64 "* ]]; then
+    printf 'Expected arm64 and x86_64 in %s, got %s\n' "$binary" "$architectures" >&2
+    return 1
+  fi
+}
+verify_universal "$binary_path"
 codesign --verify --strict Allowance.app
 plutil -lint Allowance.app/Contents/Info.plist
 
@@ -66,8 +73,7 @@ dmg_is_mounted=true
 cmp Assets/Allowance.icns "$dmg_mount_dir/.VolumeIcon.icns"
 cmp "$dmg_layout_path" "$dmg_mount_dir/.DS_Store"
 mounted_binary_path="$dmg_mount_dir/Allowance.app/Contents/MacOS/Allowance"
-lipo -verify_arch arm64 "$mounted_binary_path"
-lipo -verify_arch x86_64 "$mounted_binary_path"
+verify_universal "$mounted_binary_path"
 codesign --verify --strict "$dmg_mount_dir/Allowance.app"
 [[ "$(plutil -extract CFBundleShortVersionString raw "$dmg_mount_dir/Allowance.app/Contents/Info.plist")" == '0.1.4' ]]
 hdiutil detach "$dmg_mount_dir" -quiet

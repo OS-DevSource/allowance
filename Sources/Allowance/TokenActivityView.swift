@@ -14,7 +14,7 @@ struct TokenActivityView: View {
     private let tint = Color(red: 0.30, green: 0.88, blue: 0.73)
 
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 60)) { context in
+        TimelineView(.everyMinute) { context in
             let days = model.tokenActivity?.weekOrderedDays(now: context.date) ?? []
             let todayDate = TokenActivity.calendar.startOfDay(for: context.date)
             VStack(alignment: .leading, spacing: 4) {
@@ -37,7 +37,7 @@ struct TokenActivityView: View {
                     .accessibilityLabel("Token activity")
                     .accessibilityValue(expanded ? "Expanded" : "Collapsed")
                 if expanded {
-                    Text("UTC days • Reset at 00:00 UTC")
+                    Text("New day at 00:00 UTC")
                         .font(.system(size: 10)).foregroundStyle(.secondary)
                     if model.tokensError {
                         Text(model.tokenActivity == nil ? "Token activity unavailable" : "Showing last known activity")
@@ -59,7 +59,7 @@ struct TokenActivityView: View {
                                             Text("—").font(.system(size: 10)).foregroundStyle(.secondary)
                                         }
                                     }.frame(height: 56, alignment: .bottom)
-                                    Text(weekday(day.date)).font(.system(size: 10, weight: today ? .semibold : .regular))
+                                    Text(TokenActivity.dateLabel(day.date, template: "EEE")).font(.system(size: 10, weight: today ? .semibold : .regular))
                                         .foregroundStyle(today ? tint : (inspecting ? Color.primary : Color.secondary))
                                 }.frame(maxWidth: .infinity).padding(.top, 10).contentShape(Rectangle())
                                     .focusable()
@@ -69,12 +69,12 @@ struct TokenActivityView: View {
                                         else if hoveredDay == day.id { hoveredDay = nil }
                                     }
                                     .accessibilityElement(children: .ignore)
-                                    .accessibilityLabel(today ? "Today UTC, " + dayLabel(day.date) : dayLabel(day.date))
+                                    .accessibilityLabel((today ? "Today, " : "") + TokenActivity.dateLabel(day.date, template: "EEEE MMMM d") + " UTC")
                                     .accessibilityValue(day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported")
                             }
                         }
                         let inspected = days.first { $0.id == (hoveredDay ?? focusedDay) }
-                        Text(inspected.map(detail) ?? "")
+                        Text(inspected.map { TokenActivity.detailLabel($0) } ?? "")
                             .font(.system(size: 10)).foregroundStyle(.secondary)
                             .frame(height: 12, alignment: .leading)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -100,25 +100,5 @@ struct TokenActivityView: View {
                     .onChange(of: proxy.size.height) { onHeightChange?($0) }
             }
         }
-    }
-    private func weekday(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.calendar = TokenActivity.calendar
-        formatter.timeZone = TokenActivity.calendar.timeZone
-        formatter.dateFormat = "EEE"
-        return formatter.string(from: date)
-    }
-    private func dayLabel(_ date: Date) -> String {
-        utcLabel(date, template: "EEEE MMMM d") + " UTC"
-    }
-    private func utcLabel(_ date: Date, template: String) -> String {
-        let formatter = DateFormatter()
-        formatter.calendar = TokenActivity.calendar
-        formatter.timeZone = TokenActivity.calendar.timeZone
-        formatter.setLocalizedDateFormatFromTemplate(template)
-        return formatter.string(from: date)
-    }
-    private func detail(_ day: TokenActivity.Day) -> String {
-        return "\(utcLabel(day.date, template: "EEE MMM d") + " UTC") · \(day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported")"
     }
 }

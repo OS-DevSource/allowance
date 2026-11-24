@@ -45,11 +45,15 @@ for app in "$mount/Allowance.app" "$work/extracted/Allowance.app"; do
   [[ "$(plutil -extract CFBundleVersion raw "$plist")" == 6 ]]
   [[ "$(plutil -extract CFBundleIdentifier raw "$plist")" == local.john.allowance ]]
   [[ "$(plutil -extract LSMinimumSystemVersion raw "$plist")" == 13.0 ]]
-  lipo -verify_arch arm64 x86_64 "$bin"
+  architectures="$(lipo -archs "$bin")"
+  if [[ " $architectures " != *" arm64 "* || " $architectures " != *" x86_64 "* ]]; then
+    printf 'Expected arm64 and x86_64 in %s, got %s\n' "$bin" "$architectures" >&2
+    exit 1
+  fi
+  printf '%s: %s\n' "${app#"$work/"}" "$architectures"
   codesign --verify --strict --verbose=2 "$app"
 done
-cmp "$mount/Allowance.app/Contents/MacOS/Allowance" "$work/extracted/Allowance.app/Contents/MacOS/Allowance"
-cmp "$mount/Allowance.app/Contents/Info.plist" "$work/extracted/Allowance.app/Contents/Info.plist"
+diff -qr "$mount/Allowance.app/Contents" "$work/extracted/Allowance.app/Contents"
 hdiutil detach "$mount" -quiet
 mounted=0
 printf 'Public v0.1.4 package verification passed. Installation and live CLI checks remain separate.\n'
