@@ -12,6 +12,20 @@ Allowance targets macOS 13 or later. The table separates tested configurations f
 
 Reproduce the checks using [Contributing](../CONTRIBUTING.md).
 
+## v0.1.4 release evidence (November 24, 2026)
+
+- The public release tag `v0.1.4` resolves to `e345c56cc28a34e6a1cae5e630b580ad7d23c302`. The PR head and tag have identical source trees.
+- [PR CI](https://github.com/OS-DevSource/allowance/actions/runs/45233576673) and [merged-commit CI](https://github.com/OS-DevSource/allowance/actions/runs/45234761484) succeeded. These checks build a native debug app, not the published universal packages.
+- Source metadata declares version 0.1.4, build 6, bundle ID `local.john.allowance`, minimum macOS 13.0.
+- GitHub's [release metadata](https://api.github.com/repos/OS-DevSource/allowance/releases/tags/v0.1.4) records the following uploaded assets and SHA-256 digests:
+
+| Asset | Bytes | SHA-256 |
+| --- | ---: | --- |
+| Allowance-macOS-universal.dmg | 1662522 | `14c2bad61a1ef0ba2683260bd2df44394007cb0bc9b0daf5c0c79abe861f2424` |
+| Allowance-macOS-universal.zip | 1094405 | `93c2e354bd4843392679877535082ff456fd16db0cb13cafc52d307eb498cf0d` |
+
+**Pending:** independent verification of downloaded bytes, checksum sidecars, embedded bundles, and physical macOS installation/upgrade and live CLI behavior. GitHub metadata alone is not a successful binary verification. Run `bash scripts/verify-public-release.sh` on macOS to validate the two published packages without installing or launching them. Record the actual result here after it passes. The v0.1.3 evidence above remains historical.
+
 ## Coverage
 
 Automated checks cover allowance parsing and legacy fallback, executable selection, protocol initialization, malformed responses, sign-in and network errors, timeouts, refresh concurrency, and recovery while retaining the last successful reading. Window-position checks cover reachable coordinates, negative display coordinates, and title-bar bounds for unavailable displays and oversized windows.

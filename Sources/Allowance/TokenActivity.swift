@@ -1,6 +1,6 @@
 import Foundation
 
-/// Service date labels are preserved; the rolling seven-day window follows the user's time zone.
+/// Service date labels and the production rolling window both use UTC.
 struct TokenActivity: Decodable {
     struct Summary: Decodable {
         let lifetimeTokens: Int64?
@@ -22,7 +22,7 @@ struct TokenActivity: Decodable {
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         return calendar
     }
-    static func displayCalendar(timeZone: TimeZone = .autoupdatingCurrent) -> Calendar {
+    static func displayCalendar(timeZone: TimeZone = TimeZone(secondsFromGMT: 0)!) -> Calendar {
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = timeZone
         return calendar
@@ -49,7 +49,7 @@ struct TokenActivity: Decodable {
         if let lifetime = activity.summary?.lifetimeTokens, lifetime < 0 { throw UsageError.malformed }
         return activity
     }
-    func days(now: Date = Date(), timeZone: TimeZone = .autoupdatingCurrent) -> [Day] {
+    func days(now: Date = Date(), timeZone: TimeZone = TimeZone(secondsFromGMT: 0)!) -> [Day] {
         let calendar = Self.displayCalendar(timeZone: timeZone)
         let today = calendar.startOfDay(for: now)
         let firstDay = calendar.date(byAdding: .day, value: -6, to: today)!
@@ -63,7 +63,7 @@ struct TokenActivity: Decodable {
         }
     }
     /// Keep the rolling dates, but place their bars in the familiar Sunday–Saturday order.
-    func weekOrderedDays(now: Date = Date(), timeZone: TimeZone = .autoupdatingCurrent) -> [Day] {
+    func weekOrderedDays(now: Date = Date(), timeZone: TimeZone = TimeZone(secondsFromGMT: 0)!) -> [Day] {
         let calendar = Self.displayCalendar(timeZone: timeZone)
         return days(now: now, timeZone: timeZone).sorted {
             calendar.component(.weekday, from: $0.date) < calendar.component(.weekday, from: $1.date)

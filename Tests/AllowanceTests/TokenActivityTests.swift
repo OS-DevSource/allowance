@@ -57,6 +57,18 @@ final class TokenActivityTests: XCTestCase {
         XCTAssertEqual(dstDays.map { calendar.component(.weekday, from: $0.date) }, [3, 4, 5, 6, 7, 1, 2])
         XCTAssertEqual(dstDays[6].date.timeIntervalSince(dstDays[5].date), 23 * 3600)
     }
+    func testDefaultReportingDayRollsAtUTCMidnightNotLocalMidnight() throws {
+        let activity = try TokenActivity.decode(Data(#"{"dailyUsageBuckets":[{"startDate":"2026-11-24","tokens":10},{"startDate":"2026-11-25","tokens":25}]}"#.utf8))
+        let formatter = ISO8601DateFormatter()
+        let before = try XCTUnwrap(formatter.date(from: "2026-11-24T23:59:00Z"))
+        let after = try XCTUnwrap(formatter.date(from: "2026-11-25T00:01:00Z"))
+        let localMidnight = try XCTUnwrap(formatter.date(from: "2026-11-25T06:01:00Z"))
+        XCTAssertEqual(activity.days(now: before).last?.tokens, 10)
+        XCTAssertEqual(activity.days(now: after).last?.tokens, 25)
+        XCTAssertEqual(activity.days(now: localMidnight).last?.tokens, 25)
+        XCTAssertEqual(activity.weekOrderedDays(now: after)[3].tokens, 25)
+        XCTAssertEqual(TokenActivity.displayCalendar().timeZone.secondsFromGMT(), 0)
+    }
     func testNullableHistoryIsNotZeroUsage() throws {
         let activity = try TokenActivity.decode(Data(#"{"summary":null,"dailyUsageBuckets":null}"#.utf8))
         XCTAssertNil(activity.summary)

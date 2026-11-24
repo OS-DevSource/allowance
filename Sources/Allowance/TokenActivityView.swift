@@ -16,7 +16,7 @@ struct TokenActivityView: View {
     var body: some View {
         TimelineView(.periodic(from: .now, by: 60)) { context in
             let days = model.tokenActivity?.weekOrderedDays(now: context.date) ?? []
-            let todayDate = TokenActivity.displayCalendar().startOfDay(for: context.date)
+            let todayDate = TokenActivity.calendar.startOfDay(for: context.date)
             VStack(alignment: .leading, spacing: 4) {
                 Button {
                     expanded.toggle()
@@ -30,13 +30,15 @@ struct TokenActivityView: View {
                         Text("Token activity").fontWeight(.medium)
                         Spacer()
                         if let today = days.first(where: { $0.date == todayDate })?.tokens {
-                            Text("\(TokenActivity.compact(today)) today").foregroundStyle(.secondary)
+                            Text("\(TokenActivity.compact(today)) today UTC").foregroundStyle(.secondary)
                         }
                     }.font(.system(size: 12)).contentShape(Rectangle()).padding(.vertical, 5)
                 }.buttonStyle(.plain)
                     .accessibilityLabel("Token activity")
                     .accessibilityValue(expanded ? "Expanded" : "Collapsed")
                 if expanded {
+                    Text("UTC days • Reset at 00:00 UTC")
+                        .font(.system(size: 10)).foregroundStyle(.secondary)
                     if model.tokensError {
                         Text(model.tokenActivity == nil ? "Token activity unavailable" : "Showing last known activity")
                             .font(.system(size: 10)).foregroundStyle(.orange)
@@ -67,7 +69,7 @@ struct TokenActivityView: View {
                                         else if hoveredDay == day.id { hoveredDay = nil }
                                     }
                                     .accessibilityElement(children: .ignore)
-                                    .accessibilityLabel(today ? "Today" : dayLabel(day.date))
+                                    .accessibilityLabel(today ? "Today UTC, " + dayLabel(day.date) : dayLabel(day.date))
                                     .accessibilityValue(day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported")
                             }
                         }
@@ -101,14 +103,22 @@ struct TokenActivityView: View {
     }
     private func weekday(_ date: Date) -> String {
         let formatter = DateFormatter()
-        formatter.timeZone = .autoupdatingCurrent
+        formatter.calendar = TokenActivity.calendar
+        formatter.timeZone = TokenActivity.calendar.timeZone
         formatter.dateFormat = "EEE"
         return formatter.string(from: date)
     }
     private func dayLabel(_ date: Date) -> String {
-        date.formatted(.dateTime.weekday(.wide).month(.wide).day())
+        utcLabel(date, template: "EEEE MMMM d") + " UTC"
+    }
+    private func utcLabel(_ date: Date, template: String) -> String {
+        let formatter = DateFormatter()
+        formatter.calendar = TokenActivity.calendar
+        formatter.timeZone = TokenActivity.calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate(template)
+        return formatter.string(from: date)
     }
     private func detail(_ day: TokenActivity.Day) -> String {
-        return "\(day.date.formatted(.dateTime.weekday(.abbreviated).month(.abbreviated).day())) · \(day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported")"
+        return "\(utcLabel(day.date, template: "EEE MMM d") + " UTC") · \(day.tokens.map { $0.formatted() + " tokens" } ?? "No total reported")"
     }
 }
