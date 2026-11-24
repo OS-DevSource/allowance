@@ -82,36 +82,34 @@ private final class SequenceReader: @unchecked Sendable {
         let tokenFixture = #"{"summary":{"lifetimeTokens":14876244643},"dailyUsageBuckets":[{"startDate":"2026-09-17","tokens":23571621},{"startDate":"2026-09-16","tokens":0}]}"#
         let activity = try TokenActivity.decode(Data(tokenFixture.utf8))
         let now = ISO8601DateFormatter().date(from: "2026-09-17T23:59:00Z")!
-        let days = activity.days(now: now, timeZone: TokenActivity.calendar.timeZone)
-        let orderedDays = activity.weekOrderedDays(now: now, timeZone: TokenActivity.calendar.timeZone)
+        let days = activity.days(now: now)
+        let orderedDays = activity.weekOrderedDays(now: now)
         check(orderedDays.map { TokenActivity.calendar.component(.weekday, from: $0.date) } == [1, 2, 3, 4, 5, 6, 7] && orderedDays[4].tokens == 23571621 && orderedDays[3].tokens == 0, "Rolling totals display in Sunday-to-Saturday positions")
-        let chicago = TimeZone(identifier: "America/Chicago")!
-        let localCalendar = TokenActivity.displayCalendar(timeZone: chicago)
-        let utcFriday = ISO8601DateFormatter().date(from: "2026-09-18T00:01:00Z")!
-        let localDays = activity.days(now: utcFriday, timeZone: chicago)
-        check(localCalendar.component(.weekday, from: utcFriday) == 5 && localDays[6].tokens == 23571621 && localDays[5].tokens == 0, "UTC Friday remains local Thursday with service date totals preserved")
-        let localSunday = ISO8601DateFormatter().date(from: "2026-09-20T05:00:00Z")!
-        let beforeSunday = activity.days(now: localSunday.addingTimeInterval(-1), timeZone: chicago)
-        let afterSunday = activity.days(now: localSunday, timeZone: chicago)
-        check(afterSunday.first?.date == beforeSunday[1].date && afterSunday[5].date == beforeSunday[6].date && afterSunday.count == 7, "Sunday advances the rolling window one day without clearing Saturday")
+        let utcMidnight = ISO8601DateFormatter().date(from: "2026-09-18T00:00:00Z")!
+        let localMidnight = ISO8601DateFormatter().date(from: "2026-09-18T05:00:00Z")!
+        let friday = activity.weekOrderedDays(now: utcMidnight)
+        check(friday[5].date == utcMidnight && friday[5].tokens == nil && friday[4].tokens == 23571621, "UTC midnight advances the highlighted weekday and preserves the previous total")
+        check(activity.days(now: localMidnight).map(\.date) == activity.days(now: localMidnight.addingTimeInterval(-1)).map(\.date), "Central midnight leaves the UTC reporting window unchanged")
+        let english = Locale(identifier: "en_US")
+        check(TokenActivity.dateLabel(friday[5].date, template: "EEE", locale: english) == "Fri", "Weekday label follows the UTC date")
+        check(TokenActivity.detailLabel(friday[4], locale: english) == "Thu, Sep 17 UTC · 23,571,621 tokens", "Chart detail shows the UTC date and exact reported count")
+        check(TokenActivity.detailLabel(friday[5], locale: english) == "Fri, Sep 18 UTC · No total reported", "Chart detail preserves unavailable UTC totals")
         let dstMonday = ISO8601DateFormatter().date(from: "2026-03-09T12:00:00Z")!
-        let dstDays = activity.days(now: dstMonday, timeZone: chicago)
-        check(dstDays.map { localCalendar.component(.weekday, from: $0.date) } == [3, 4, 5, 6, 7, 1, 2] && dstDays[6].date.timeIntervalSince(dstDays[5].date) == 23 * 3600, "Calendar days remain aligned across daylight saving")
-        let tokyo = TimeZone(identifier: "Asia/Tokyo")!
-        check(TokenActivity.displayCalendar(timeZone: tokyo).component(.weekday, from: utcFriday) == 6 && activity.days(now: utcFriday, timeZone: tokyo)[5].tokens == 23571621, "Eastern time zones keep service dates in their correct columns")
+        let dstDays = activity.days(now: dstMonday)
+        check(dstDays[6].date.timeIntervalSince(dstDays[5].date) == 24 * 3600, "UTC reporting days stay 24 hours across local daylight saving")
         check(days.map { TokenActivity.calendar.component(.weekday, from: $0.date) } == [6, 7, 1, 2, 3, 4, 5] && days[6].tokens == 23571621, "Rolling UTC window ends with today's count")
         check(days[5].tokens == 0 && days[4].tokens == nil, "Explicit zero stays zero; missing dates stay unavailable")
-        check(activity.days(now: now.addingTimeInterval(120), timeZone: TokenActivity.calendar.timeZone)[6].tokens == nil, "UTC midnight rolls today forward without inventing usage")
+        check(activity.days(now: now.addingTimeInterval(120))[6].tokens == nil, "UTC midnight rolls today forward without inventing usage")
         let sunday = ISO8601DateFormatter().date(from: "2026-09-13T00:00:00Z")!
         let saturday = ISO8601DateFormatter().date(from: "2026-09-19T23:59:00Z")!
-        check(activity.days(now: sunday, timeZone: TokenActivity.calendar.timeZone).first?.date == ISO8601DateFormatter().date(from: "2026-09-07T00:00:00Z") && activity.days(now: sunday, timeZone: TokenActivity.calendar.timeZone).allSatisfy { $0.tokens == nil }, "Sunday includes the previous six calendar days")
+        check(activity.days(now: sunday).first?.date == ISO8601DateFormatter().date(from: "2026-09-07T00:00:00Z") && activity.days(now: sunday).allSatisfy { $0.tokens == nil }, "Sunday includes the previous six calendar days")
         let saturdayActivity = try TokenActivity.decode(Data(#"{"dailyUsageBuckets":[{"startDate":"2026-09-19","tokens":10}]}"#.utf8))
-        check(saturdayActivity.days(now: saturday, timeZone: TokenActivity.calendar.timeZone).first?.date == sunday && saturdayActivity.days(now: saturday.addingTimeInterval(120), timeZone: TokenActivity.calendar.timeZone)[5].tokens == 10, "Sunday retains Saturday's total in the rolling window")
-        let rolloverBars = saturdayActivity.weekOrderedDays(now: saturday.addingTimeInterval(120), timeZone: TokenActivity.calendar.timeZone)
+        check(saturdayActivity.days(now: saturday).first?.date == sunday && saturdayActivity.days(now: saturday.addingTimeInterval(120))[5].tokens == 10, "Sunday retains Saturday's total in the rolling window")
+        let rolloverBars = saturdayActivity.weekOrderedDays(now: saturday.addingTimeInterval(120))
         check(rolloverBars.map { TokenActivity.calendar.component(.weekday, from: $0.date) } == [1, 2, 3, 4, 5, 6, 7] && rolloverBars[6].tokens == 10 && rolloverBars[0].tokens == nil, "Sunday rollover preserves Saturday in its weekday slot")
         check(TokenActivity.compact(23571621) == "23.6M" && TokenActivity.compact(14876244643) == "14.9B", "Compact token formatting handles millions and billions")
         check(try TokenActivity.decode(Data(#"{"summary":null,"dailyUsageBuckets":null}"#.utf8)).dailyUsageBuckets == nil, "Null token metrics remain unavailable")
-        check(try TokenActivity.decode(Data(#"{"summary":null,"dailyUsageBuckets":[]}"#.utf8)).days(now: now, timeZone: TokenActivity.calendar.timeZone).allSatisfy { $0.tokens == nil }, "Empty history does not invent zero days")
+        check(try TokenActivity.decode(Data(#"{"summary":null,"dailyUsageBuckets":[]}"#.utf8)).days(now: now).allSatisfy { $0.tokens == nil }, "Empty history does not invent zero days")
         for invalid in [
             #"{}"#,
             #"{"dailyUsageBuckets":[{"startDate":"2026-02-30","tokens":1}]}"#,

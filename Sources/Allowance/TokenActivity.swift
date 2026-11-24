@@ -1,6 +1,6 @@
 import Foundation
 
-/// Service date labels are preserved; the rolling seven-day window follows the user's time zone.
+/// Service date labels and the production rolling window both use UTC.
 struct TokenActivity: Decodable {
     struct Summary: Decodable {
         let lifetimeTokens: Int64?
@@ -22,12 +22,8 @@ struct TokenActivity: Decodable {
         calendar.timeZone = TimeZone(secondsFromGMT: 0)!
         return calendar
     }
-    static func displayCalendar(timeZone: TimeZone = .autoupdatingCurrent) -> Calendar {
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = timeZone
-        return calendar
-    }
-    private static func date(_ key: String, calendar: Calendar = Self.calendar) -> Date? {
+    private static func date(_ key: String) -> Date? {
+        let calendar = Self.calendar
         let parts = key.split(separator: "-", omittingEmptySubsequences: false)
         guard parts.count == 3, parts[0].count == 4, parts[1].count == 2, parts[2].count == 2,
               let year = Int(parts[0]), let month = Int(parts[1]), let day = Int(parts[2]),
@@ -49,12 +45,12 @@ struct TokenActivity: Decodable {
         if let lifetime = activity.summary?.lifetimeTokens, lifetime < 0 { throw UsageError.malformed }
         return activity
     }
-    func days(now: Date = Date(), timeZone: TimeZone = .autoupdatingCurrent) -> [Day] {
-        let calendar = Self.displayCalendar(timeZone: timeZone)
+    func days(now: Date = Date()) -> [Day] {
+        let calendar = Self.calendar
         let today = calendar.startOfDay(for: now)
         let firstDay = calendar.date(byAdding: .day, value: -6, to: today)!
         let counts = Dictionary((dailyUsageBuckets ?? []).compactMap { bucket in
-            Self.date(bucket.startDate, calendar: calendar).map { ($0, bucket.tokens) }
+            Self.date(bucket.startDate).map { ($0, bucket.tokens) }
         }, uniquingKeysWith: { first, _ in first })
         return (0...6).compactMap { offset in
             calendar.date(byAdding: .day, value: offset, to: firstDay).map {
@@ -63,11 +59,24 @@ struct TokenActivity: Decodable {
         }
     }
     /// Keep the rolling dates, but place their bars in the familiar Sunday–Saturday order.
-    func weekOrderedDays(now: Date = Date(), timeZone: TimeZone = .autoupdatingCurrent) -> [Day] {
-        let calendar = Self.displayCalendar(timeZone: timeZone)
-        return days(now: now, timeZone: timeZone).sorted {
+    func weekOrderedDays(now: Date = Date()) -> [Day] {
+        let calendar = Self.calendar
+        return days(now: now).sorted {
             calendar.component(.weekday, from: $0.date) < calendar.component(.weekday, from: $1.date)
         }
+    }
+    static func dateLabel(_ date: Date, template: String, locale: Locale = .current) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.calendar = calendar
+        formatter.timeZone = calendar.timeZone
+        formatter.setLocalizedDateFormatFromTemplate(template)
+        return formatter.string(from: date)
+    }
+    static func detailLabel(_ day: Day, locale: Locale = .current) -> String {
+        let date = dateLabel(day.date, template: "EEE MMM d", locale: locale)
+        let total = day.tokens.map { $0.formatted(.number.locale(locale)) + " tokens" } ?? "No total reported"
+        return "\(date) UTC · \(total)"
     }
     static func compact(_ tokens: Int64) -> String {
         let value = Double(tokens)
