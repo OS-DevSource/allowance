@@ -32,7 +32,7 @@ Reproduce the checks using [Contributing](../CONTRIBUTING.md).
 - `./check.sh` passed all 51 deterministic checks. Results were identical with `TZ=America/Chicago` and `TZ=Asia/Tokyo`. The suite exercises the production calendar at 00:00 UTC, at Central midnight, across a local daylight-saving transition and at the Sunday rollover. It also verifies UTC weekday and detail text, exact token counts and the distinction between explicit zero and unavailable data.
 - The live checks passed with the installed `codex-cli 0.170.0`. Both allowance and daily token history were returned through the app's CLI client. The companion window showed the seven UTC dates in Sunday–Saturday order and highlighted the current UTC weekday even though its total was unavailable. The displayed accessibility dates and totals matched the CLI response.
 - `./scripts/package-release.sh` built the local universal release and generated the DMG, ZIP and checksum sidecars. Both checksums matched. The extracted ZIP passed strict signature verification for both architectures and launched on the iMac. Swift printed a deprecation warning for x86_64 with the installed SDK. Both Mach-O slices declare macOS 13.0 as their minimum.
-- Local `swift test` could not import `XCTest`. This iMac has Swift Command Line Tools, and the repository's XCTest suite requires full Xcode. The PR's [Build and check workflow](https://github.com/OS-DevSource/allowance/actions/workflows/check.yml) runs XCTest with Xcode 26.3.
+- Local `swift test` could not import `XCTest`. This iMac has Swift Command Line Tools, and the repository's XCTest suite requires full Xcode. The [PR run for `b76c4f7`](https://github.com/OS-DevSource/allowance/actions/runs/45402555900) passed on Xcode 26.3. XCTest reported 16 cases, with 14 passes, two opt-in live cases skipped and zero failures.
 
 ## Coverage
 
@@ -50,6 +50,6 @@ Local app checks covered:
 - Network and sign-in failures were simulated; no real credentials were expired or modified.
 - Direct menu-bar popover automation was limited; most interaction checks used the companion window and Settings.
 - Live CLI results apply to the versions in the verified environments table. Future protocol or authentication changes may require app updates.
-- The hover and keyboard detail text passed deterministic checks through the production formatter. Native automation did not trigger the hover detail or keyboard focus. The midnight rollover was checked with a deterministic clock input rather than by observing the running chart across midnight.
+- The hover and keyboard detail text passed deterministic checks through the production formatter. Native automation did not trigger the hover detail or keyboard focus. Deterministic clock input verified the midnight rollover and the SwiftUI schedule's transition from 23:59 to 00:00 UTC. A live midnight transition was not observed.
 - Clean installation and in-place upgrade of the published v0.1.4 downloads were not exercised in this verification. Gatekeeper stayed enabled.
 - Release bundles are ad-hoc signed, not Developer ID signed or notarized. macOS requires the documented one-time **Privacy & Security → Open Anyway** approval for a downloaded build.
